@@ -1,10 +1,12 @@
-all:mync
+all:mync ttt
 
-mync: mync.o
-	gcc mync.o -o mync
+mync: mync.c
+	gcc mync.c -o mync
 
-mync.o: mync.c
-	gcc -c mync.c -o mync.o
+
+ttt: ttt.c
+	gcc ttt.c -o ttt
+
 
 clean:
-	rm -f *.o mync
+	rm -f *.o mync ttt

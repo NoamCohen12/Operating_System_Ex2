@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "string_view": "c",
-        "numbers": "c"
+        "numbers": "c",
+        "cstdlib": "c"
     }
 }
