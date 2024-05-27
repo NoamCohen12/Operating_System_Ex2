@@ -1,3 +1,5 @@
+.PHONY: all clean
+
 all:mync ttt
 
 mync: mync.c

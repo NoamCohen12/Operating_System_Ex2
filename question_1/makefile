@@ -1,3 +1,5 @@
+.PHONY: all clean
+
 all:ttt
 
 ttt: ttt.o
