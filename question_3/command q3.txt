@@ -1,0 +1,13 @@
+./mynetcat -e "./ttt 123456789" -i TCPS4050
+./mynetcat -e "./ttt 123456789" -o TCPClocalhost,4050 
+./mynetcat -e "./ttt 123456789" -o TCPS4050
+
+./mynetcat -e "./ttt 123456789" -o TCPC4050
+
+
+./mynetcat -e "./ttt 123456789" -i TCPS4150 -o TCPClocalhost,4152
+
+./mynetcat -e "./ttt 123456789" -i TCPS4150 -o TCPClocalhost,4152
+
+
+./mynetcat -e "./ttt 123456789" -i TCPS4150 -o 127.0.0.1,4150

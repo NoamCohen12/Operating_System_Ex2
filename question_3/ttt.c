@@ -15,6 +15,7 @@ void print_matrix(char matrix[3][3])
         printf("|\n");
         printf("-------------\n"); // Separator between rows
     }
+    fflush(stdout);
 }
 
 char check_winner(char matrix[3][3])
