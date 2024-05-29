@@ -11,3 +11,5 @@
 
 
 ./mynetcat -e "./ttt 123456789" -i TCPS4150 -o 127.0.0.1,4150
+ nc -l -p 4152
+ nc localhost 4050
