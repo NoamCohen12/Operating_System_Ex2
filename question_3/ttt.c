@@ -59,7 +59,7 @@ void check_invalid_input(char *string_num)
     // check if all number between 1-9 only one represent and not represet 0 in a argv
     if (strlen(string_num) != 9)
     {
-        printf("Error\n");
+        printf("You must enter 9 numbers\n");
         exit(1);
     }
 
@@ -67,7 +67,7 @@ void check_invalid_input(char *string_num)
     {
         if (string_num[i] < '1' || string_num[i] > '9')
         {
-            printf("Error\n");
+            printf("Each number need to be between 1-9\n");
             exit(1);
         }
 
@@ -76,7 +76,7 @@ void check_invalid_input(char *string_num)
 
     if (arr[0] > 0)
     {
-        printf("Error\n");
+        printf("Do not enter the number 0\n");
         exit(1);
     }
 
@@ -84,7 +84,7 @@ void check_invalid_input(char *string_num)
     {
         if (arr[i] != 1)
         {
-            printf("Error\n");
+            printf("Your input needs to include numbers between 1-9, each number once \n");
             exit(1);
         }
     }
@@ -115,6 +115,7 @@ int main(int argc, char *argv[])
             if (matrix[c_pos / 3][c_pos % 3] == ' ')
             {
                 matrix[c_pos / 3][c_pos % 3] = 'X'; /// 1-1=0
+                printf("Computer chose: (%d,%d)\n", c_pos / 3 + 1, c_pos % 3 + 1);
                 print_matrix(matrix);
                 if (check_winner(matrix) == 'X')
                 {
@@ -140,6 +141,7 @@ int main(int argc, char *argv[])
                 if (matrix[strategy[i] / 3][strategy[i] % 3] == ' ')
                 {
                     matrix[strategy[i] / 3][strategy[i] % 3] = 'X'; /// 1-1=0
+                    printf("Computer chose: (%d,%d)\n", c_pos / 3 + 1, c_pos % 3 + 1);
                     print_matrix(matrix);
                     if (check_winner(matrix) == '0')
                     {
@@ -172,6 +174,7 @@ int main(int argc, char *argv[])
                 if ((my_choice > '0' && my_choice <= '9' && matrix[user_pos / 3][user_pos % 3] == ' '))
                 {
                     matrix[user_pos / 3][user_pos % 3] = 'O';
+                    printf("You chose: (%d,%d)\n", user_pos / 3 + 1, user_pos % 3 + 1);
                     print_matrix(matrix);
                     if (check_winner(matrix) == 'X')
                     {
@@ -186,11 +189,21 @@ int main(int argc, char *argv[])
                     count_of_place_empty++;
                     my_turn = false;
                 }
+                else if (my_choice > '0' && my_choice <= '9' && matrix[user_pos / 3][user_pos % 3] != ' ')
+                {
+                    printf("You entered a number that is already taken\n");
+                        fflush(stdout);
+
+                }
             }
             else
             {
-                printf("please enter a one number\n");
+                printf("please enter one number\n");
+                    fflush(stdout);
+
             }
         }
     }
+    fflush(stdout);
+
 }

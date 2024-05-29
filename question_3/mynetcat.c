@@ -29,7 +29,7 @@ int open_server_TCP(char *port)
     serveradder.sin_family = AF_INET;
     serveradder.sin_port = htons(atoi(port));
     serveradder.sin_addr.s_addr = INADDR_ANY;
-    printf("socket(2) Sockfd = %d\n", sockfd);
+    // printf("socket(2) Sockfd = %d\n", sockfd);
     if (bind(sockfd, (struct sockaddr *)&serveradder, sizeof(serveradder)) == -1)
     {
         perror("bind");
@@ -46,7 +46,7 @@ int open_server_TCP(char *port)
         perror("accept");
         exit(1);
     }
-    printf("accept(2) Client_fd = %d\n", client_fd);
+    //printf("accept(2) Client_fd = %d\n", client_fd);
     return client_fd;
 }
 
@@ -67,7 +67,6 @@ int open_client_TCP(char *server_ip, char *server_port)
     // get address info
     if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-        // cleanup_and_exit(EXIT_FAILURE);
     }
 
     // loop through the results and connect to the first we can
@@ -87,12 +86,10 @@ int open_client_TCP(char *server_ip, char *server_port)
     }
 
     if (p == NULL) {
-        fprintf(stderr, "failed to connect\n");
-        // cleanup_and_exit(EXIT_FAILURE);
+        perror("failed to connect\n");
     }
 
     freeaddrinfo(res);  // free the linked list
-
     return sockfd;
 
 }
@@ -102,7 +99,7 @@ int run_programming(char *input)
     // Ensure input is not NULL
     if (input == NULL)
     {
-        fprintf(stderr, "Input string is NULL\n");
+        perror("Input string is NULL\n");
         return 1;
     }
 
@@ -123,17 +120,17 @@ int run_programming(char *input)
     argv[argc] = NULL; // Null-terminate the array
 
     // Debug: Print each token to see the result of strtok
-    for (int i = 0; i < argc; i++)
-    {
-        printf("argv[%d]: %s\n", i, argv[i]);
-    }
+    // for (int i = 0; i < argc; i++)
+    // {
+    //     printf("argv[%d]: %s\n", i, argv[i]);
+    // }
     // Check if any command was provided
     if (argc == 0)
     {
-        fprintf(stderr, "Without arguments\n");
+        perror("Without arguments\n");
         return 1;
     }
-    printf("before fork\n");
+    //printf("before fork\n");
     // Fork and execute the command
     int pid;
     if ((pid = fork()) == -1)
@@ -160,13 +157,13 @@ int run_programming(char *input)
 int i_case(char *input)
 {
 
-    printf("input out: %s\n", input);
+   // printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        printf("port: %s\n", port);
+        //printf("port: %s\n", port);
         int c_fd = open_server_TCP(port);
-        printf("c_fd in i case: %d\n", c_fd);
+        //printf("c_fd in i case: %d\n", c_fd);
         if (dup2(c_fd, STDIN_FILENO) == -1)
         {
             perror("dup2- TCPS i case");
@@ -179,13 +176,13 @@ int i_case(char *input)
         char *localhost;
         if ((localhost = strtok(input, ",")) == NULL)
         {
-            printf("Didn't get localhost");
+            perror("Didn't get localhost");
             exit(1);
         }
         char *port_char;
         if ((port_char = strtok(NULL, ",")) == NULL)
         {
-            printf("Didn't get port");
+            perror("Didn't get port");
             exit(1);
         }
         int sockfd = open_client_TCP(localhost, port_char);
@@ -199,13 +196,13 @@ int i_case(char *input)
 }
 int o_case(char *input)
 {
-    printf("input out: %s\n", input);
+    //printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        printf("port o case: %s\n", port);
+        //printf("port o case: %s\n", port);
         int c_fd = open_server_TCP(port);
-        printf("c_fd in o case: %d\n", c_fd);
+        //printf("c_fd in o case: %d\n", c_fd);
         if (dup2(c_fd, STDOUT_FILENO) == -1)
         {
             perror("dup2- TCPS o case");
@@ -218,13 +215,13 @@ int o_case(char *input)
         char *localhost;
         if ((localhost = strtok(input, ",")) == NULL)
         {
-            printf("no localhost");
+            perror("no localhost");
             exit(1);
         }
         char *port_char;
         if ((port_char = strtok(NULL, ",")) == NULL)
         {
-            printf("no port");
+            perror("no port");
             exit(1);
         }
         int sockfd = open_client_TCP(localhost, port_char);
@@ -260,13 +257,13 @@ int b_case(char *input)
         char *localhost;
         if ((localhost = strtok(input, ",")) == NULL)
         {
-            printf("Didn't get localhost");
+            perror("Didn't get localhost");
             exit(1);
         }
         char *port_char;
         if ((port_char = strtok(NULL, ",")) == NULL)
         {
-            printf("Didn't get port");
+            perror("Didn't get port");
             exit(1);
         }
 
@@ -284,16 +281,12 @@ int b_case(char *input)
     }
     return 0;
 }
-// int e_case(char *input)
-// {
 
-//     return 0;
-// }
 int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        printf("Error\n");
+        perror("Error\n");
         exit(1);
     }
     char *re_val_e;
@@ -322,7 +315,6 @@ int main(int argc, char *argv[])
 
             default:
                 fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
-
                 exit(EXIT_FAILURE);
             }
         }
