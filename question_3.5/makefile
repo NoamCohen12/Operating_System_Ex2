@@ -7,4 +7,4 @@ mynetcat: mynetcat.c
 
 
 clean:
-	rm -f *.o 
+	rm -f *.o mynetcat

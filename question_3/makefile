@@ -9,4 +9,4 @@ ttt: ttt.c
 	gcc ttt.c -o ttt
 
 clean:
-	rm -f *.o ttt
+	rm -f *.o ttt mynetcat
