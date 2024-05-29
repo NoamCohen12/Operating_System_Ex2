@@ -1,5 +1,5 @@
 // the command ./mync -e "./ttt 123456789"
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <errno.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -13,18 +13,20 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <signal.h>
+#define SOCKET_PATH "/tmp/unix_socket"
 
-//serverport-  the port users will be connecting to
-int numbytes=101;
+// serverport-  the port users will be connecting to
+int numbytes = 101;
 
-
-int open_client_unix_datagram() {
+int open_client_unix_datagram()
+{
     int sockfd;
     struct sockaddr_un addr;
 
     // Create a Unix domain socket
     sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-    if (sockfd == -1) {
+    if (sockfd == -1)
+    {
         perror("socket");
         exit(EXIT_FAILURE);
     }
@@ -35,7 +37,8 @@ int open_client_unix_datagram() {
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
     // Connect to the server
-    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1)
+    {
         perror("connect");
         exit(EXIT_FAILURE);
     }
@@ -43,13 +46,15 @@ int open_client_unix_datagram() {
     return sockfd;
 }
 
-int open_client_unix_stream() {
+int open_client_unix_stream()
+{
     int sockfd;
     struct sockaddr_un addr;
 
     // Create a Unix domain socket
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd == -1) {
+    if (sockfd == -1)
+    {
         perror("socket");
         exit(EXIT_FAILURE);
     }
@@ -60,7 +65,8 @@ int open_client_unix_stream() {
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
     // Connect to the server
-    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1)
+    {
         perror("connect");
         exit(EXIT_FAILURE);
     }
@@ -68,23 +74,21 @@ int open_client_unix_stream() {
     return sockfd;
 }
 
-
-
-
-
-
-
-
-int open_server_unix_stream() {
+int open_server_unix_stream()
+{
     int sockfd;
     struct sockaddr_un addr;
 
     // Create a Unix domain socket
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd == -1) {
+    if (sockfd == -1)
+    {
         perror("socket");
         exit(EXIT_FAILURE);
     }
+
+    // Ensure the socket file does not already exist
+    unlink(SOCKET_PATH);
 
     // Initialize address structure
     memset(&addr, 0, sizeof(struct sockaddr_un));
@@ -92,25 +96,39 @@ int open_server_unix_stream() {
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
     // Bind the socket to the address
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1)
+    {
         perror("bind");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Listen for incoming connections
+    if (listen(sockfd, 5) == -1)
+    {
+        perror("listen");
+        close(sockfd);
         exit(EXIT_FAILURE);
     }
 
     return sockfd;
 }
 
-
-int open_server_unix_udp() {
+int open_server_unix_udp()
+{
     int sockfd;
     struct sockaddr_un addr;
 
     // Create a Unix domain socket
     sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-    if (sockfd == -1) {
+    if (sockfd == -1)
+    {
         perror("socket");
         exit(EXIT_FAILURE);
     }
+
+    // Ensure the socket file does not already exist
+    unlink(SOCKET_PATH);
 
     // Initialize address structure
     memset(&addr, 0, sizeof(struct sockaddr_un));
@@ -118,53 +136,58 @@ int open_server_unix_udp() {
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
     // Bind the socket to the address
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1)
+    {
         perror("bind");
+        close(sockfd);
         exit(EXIT_FAILURE);
     }
 
     return sockfd;
 }
+int open_client_UDP(char *destaddr, char *serverport)
+{
+    int sockfd;
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    int numbytes;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; // set to AF_INET to use IPv4
+    hints.ai_socktype = SOCK_DGRAM;
 
-int open_client_UDP(char* destaddr, char* serverport)
-{ 
-	int sockfd;
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-	int numbytes;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET; // set to AF_INET to use IPv4
-	hints.ai_socktype = SOCK_DGRAM;
+    if ((rv = getaddrinfo(destaddr, serverport, &hints, &servinfo)) != 0)
+    {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
 
-	if ((rv = getaddrinfo(destaddr, serverport, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return 1;
-	}
+    for (p = servinfo; p != NULL; p = p->ai_next)
+    {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                             p->ai_protocol)) == -1)
+        {
+            perror("talker: socket");
+            continue;
+        }
 
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(p->ai_family, p->ai_socktype,
-				p->ai_protocol)) == -1) {
-			perror("talker: socket");
-			continue;
-		}
-
-		break;
-	}
-	connect (sockfd, p->ai_addr, p->ai_addrlen);
-	return sockfd;
+        break;
+    }
+    connect(sockfd, p->ai_addr, p->ai_addrlen);
+    return sockfd;
 }
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
-	if (sa->sa_family == AF_INET) {
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	}
+    if (sa->sa_family == AF_INET)
+    {
+        return &(((struct sockaddr_in *)sa)->sin_addr);
+    }
 
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+    return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
-int open_server_UDP(char* myport)
+int open_server_UDP(char *myport)
 {
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
@@ -180,34 +203,38 @@ int open_server_UDP(char* myport)
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE; // use my IP
 
-    if ((rv = getaddrinfo(NULL, myport, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo(NULL, myport, &hints, &servinfo)) != 0)
+    {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
 
     // loop through all the results and bind to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
+    for (p = servinfo; p != NULL; p = p->ai_next)
+    {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
+                             p->ai_protocol)) == -1)
+        {
             perror("listener: socket");
             continue;
         }
 
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+        {
             close(sockfd);
             perror("listener: bind");
             continue;
         }
         break;
     }
-    if (p == NULL) {
+    if (p == NULL)
+    {
         fprintf(stderr, "listener: failed to bind socket\n");
         return 2;
     }
     freeaddrinfo(servinfo);
     return sockfd;
 }
-
 
 /*
 open socket - server side
@@ -241,7 +268,7 @@ int open_server_TCP(char *port)
         perror("accept");
         exit(1);
     }
-    //printf("accept(2) Client_fd = %d\n", client_fd);
+    // printf("accept(2) Client_fd = %d\n", client_fd);
     return client_fd;
 }
 
@@ -260,33 +287,37 @@ int open_client_TCP(char *server_ip, char *server_port)
     hints.ai_socktype = SOCK_STREAM;
 
     // get address info
-    if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0) {
+    if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0)
+    {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
     }
 
     // loop through the results and connect to the first we can
-    for (p = res; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+    for (p = res; p != NULL; p = p->ai_next)
+    {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+        {
             perror("error creating socket");
             continue;
         }
 
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+        {
             close(sockfd);
             perror("error connecting to server");
             continue;
         }
 
-        break;  // if we get here, we must have connected successfully
+        break; // if we get here, we must have connected successfully
     }
 
-    if (p == NULL) {
+    if (p == NULL)
+    {
         perror("failed to connect\n");
     }
 
-    freeaddrinfo(res);  // free the linked list
+    freeaddrinfo(res); // free the linked list
     return sockfd;
-
 }
 
 int run_programming(char *input)
@@ -325,8 +356,8 @@ int run_programming(char *input)
         perror("Without arguments\n");
         return 1;
     }
-    //printf("before fork\n");
-    // Fork and execute the command
+    // printf("before fork\n");
+    //  Fork and execute the command
     int pid;
     if ((pid = fork()) == -1)
     {
@@ -354,9 +385,9 @@ int i_case(char *input)
     if (strncmp(input, "UDPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        //printf("port: %s\n", port);
+        // printf("port: %s\n", port);
         int c_fd = open_server_UDP(port);
-        //printf("c_fd in i case: %d\n", c_fd);
+        // printf("c_fd in i case: %d\n", c_fd);
         if (dup2(c_fd, STDIN_FILENO) == -1)
         {
             perror("dup2- UDPS i case");
@@ -364,13 +395,13 @@ int i_case(char *input)
         }
     }
 
-   // printf("input out: %s\n", input);
+    // printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        //printf("port: %s\n", port);
+        // printf("port: %s\n", port);
         int c_fd = open_server_TCP(port);
-        //printf("c_fd in i case: %d\n", c_fd);
+        // printf("c_fd in i case: %d\n", c_fd);
         if (dup2(c_fd, STDIN_FILENO) == -1)
         {
             perror("dup2- TCPS i case");
@@ -399,18 +430,31 @@ int i_case(char *input)
             close(sockfd);
         }
     }
+     if (strncmp(o_value, "UDSS", 4) == 0)
+    {
+        input = input + 4; // check the input after 4 chars D or S
+        if (strncmp(input, "D", 1) == 0)
+        {
+            input++;
+            int sockfd = open_server_unix_udp();
+        }
+        else if (strncmp(input, "S", 1) == 0)
+        {
+            input++;
+            int sockfd = open_server_unix_stream();
+        }
     return 0;
 }
 int o_case(char *input)
 {
 
-    //printf("input out: %s\n", input);
+    // printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        //printf("port o case: %s\n", port);
+        // printf("port o case: %s\n", port);
         int c_fd = open_server_TCP(port);
-        //printf("c_fd in o case: %d\n", c_fd);
+        // printf("c_fd in o case: %d\n", c_fd);
         if (dup2(c_fd, STDOUT_FILENO) == -1)
         {
             perror("dup2- TCPS o case");
@@ -461,121 +505,138 @@ int o_case(char *input)
             close(sockfd);
         }
     }
-    return 0;
-}
-// both- i and o
-int b_case(char *input)
-{
-    if (strncmp(input, "TCPS", 4) == 0)
+    if (strncmp(o_value, "UDSC", 4) == 0)
     {
-        char *port = input + 4; // port start after 4 chars
-        int c_fd = open_server_TCP(port);
-        if (dup2(c_fd, STDOUT_FILENO) == -1)
+        input = input + 4; // check the input after 4 chars D or S
+        if (strncmp(input, "D", 1) == 0)
         {
-            perror("dup2- b TCPS o case");
-            close(c_fd);
+            input++;
+            int sockfd = open_client_unix_datagram();
         }
-        if (dup2(c_fd, STDIN_FILENO) == -1)
+        else if (strncmp(input, "S", 1) == 0)
         {
-            perror("dup2- b TCPS i case");
-            close(c_fd);
-        }
-    }
-    if (strncmp(input, "TCPC", 4) == 0)
-    {
-        input = input + 4; // port start after 4 chars
-        char *localhost;
-        if ((localhost = strtok(input, ",")) == NULL)
-        {
-            perror("Didn't get localhost");
-            exit(1);
-        }
-        char *port_char;
-        if ((port_char = strtok(NULL, ",")) == NULL)
-        {
-            perror("Didn't get port");
-            exit(1);
+            input++;
+            int sockfd = open_client_unix_stream();
         }
 
-        int sockfd = open_client_TCP(localhost, port_char);
-        if (dup2(sockfd, STDOUT_FILENO) == -1)
-        {
-            perror("dup2- b TCPC o case");
-            close(sockfd);
-        }
-        if (dup2(sockfd, STDIN_FILENO) == -1)
-        {
-            perror("dup2- b TCPC i case");
-            close(sockfd);
-        }
+        return 0;
     }
-    return 0;
-}
-
-void handle_alarm(int sig) {
-    printf("Time out\n");
-    exit(1);
-}
-
-int t_case(char *time_in_sec)
-{
-    printf("Time: %s\n", time_in_sec);
-    if (time_in_sec == NULL) {
-        perror("Time is NULL\n");
-        exit(1);
-    }
-   int time = atoi(time_in_sec);
-    if (time < 0) {
-        perror("Time should be positive\n");
-        exit(1);
-    }
-    signal(SIGALRM, handle_alarm);
-    alarm(time);
-    return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    if (argc < 2)
+    // both- i and o
+    int b_case(char *input)
     {
-        perror("Error\n");
-        exit(1);
-    }
-    char *re_val_e;
-    int re_val_b;
-    int re_val_i;
-    int re_val_o;
-    int re_val_timeout;
-    // optarg
-    int opt;
-    while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1)
-    {
+        if (strncmp(input, "TCPS", 4) == 0)
         {
-            switch (opt)
+            char *port = input + 4; // port start after 4 chars
+            int c_fd = open_server_TCP(port);
+            if (dup2(c_fd, STDOUT_FILENO) == -1)
             {
-            case 'e':
-                re_val_e = optarg; // optarg is the argument after -e
-                break;
-            case 'b':
-                re_val_b = b_case(optarg); // optarg is the argument after -b
-                break;
-            case 'i':
-                re_val_i = i_case(optarg); // optarg is the argument after -i
-                break;
-            case 'o':
-                re_val_o = o_case(optarg); // optarg is the argument after -i
-                break;
-            case 't':
-                re_val_timeout = t_case(optarg); // optarg is the argument after -i
-                break;
-
-            default:
-                fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
-                exit(EXIT_FAILURE);
+                perror("dup2- b TCPS o case");
+                close(c_fd);
+            }
+            if (dup2(c_fd, STDIN_FILENO) == -1)
+            {
+                perror("dup2- b TCPS i case");
+                close(c_fd);
             }
         }
+        if (strncmp(input, "TCPC", 4) == 0)
+        {
+            input = input + 4; // port start after 4 chars
+            char *localhost;
+            if ((localhost = strtok(input, ",")) == NULL)
+            {
+                perror("Didn't get localhost");
+                exit(1);
+            }
+            char *port_char;
+            if ((port_char = strtok(NULL, ",")) == NULL)
+            {
+                perror("Didn't get port");
+                exit(1);
+            }
+
+            int sockfd = open_client_TCP(localhost, port_char);
+            if (dup2(sockfd, STDOUT_FILENO) == -1)
+            {
+                perror("dup2- b TCPC o case");
+                close(sockfd);
+            }
+            if (dup2(sockfd, STDIN_FILENO) == -1)
+            {
+                perror("dup2- b TCPC i case");
+                close(sockfd);
+            }
+        }
+        return 0;
     }
-    run_programming(re_val_e);
-    printf("end");
-    close(1);
-}
+
+    void handle_alarm(int sig)
+    {
+        printf("Time out\n");
+        exit(1);
+    }
+
+    int t_case(char *time_in_sec)
+    {
+        printf("Time: %s\n", time_in_sec);
+        if (time_in_sec == NULL)
+        {
+            perror("Time is NULL\n");
+            exit(1);
+        }
+        int time = atoi(time_in_sec);
+        if (time < 0)
+        {
+            perror("Time should be positive\n");
+            exit(1);
+        }
+        signal(SIGALRM, handle_alarm);
+        alarm(time);
+        return 0;
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc < 2)
+        {
+            perror("Error\n");
+            exit(1);
+        }
+        char *re_val_e;
+        int re_val_b;
+        int re_val_i;
+        int re_val_o;
+        int re_val_timeout;
+        // optarg
+        int opt;
+        while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1)
+        {
+            {
+                switch (opt)
+                {
+                case 'e':
+                    re_val_e = optarg; // optarg is the argument after -e
+                    break;
+                case 'b':
+                    re_val_b = b_case(optarg); // optarg is the argument after -b
+                    break;
+                case 'i':
+                    re_val_i = i_case(optarg); // optarg is the argument after -i
+                    break;
+                case 'o':
+                    re_val_o = o_case(optarg); // optarg is the argument after -i
+                    break;
+                case 't':
+                    re_val_timeout = t_case(optarg); // optarg is the argument after -i
+                    break;
+
+                default:
+                    fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        run_programming(re_val_e);
+        printf("end");
+        close(1);
+    }
