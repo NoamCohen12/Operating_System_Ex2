@@ -94,7 +94,8 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        printf("Error\n");
+        printf("You must enter in this format: ./ttt <strategy>\n");
+        printf("\n");
         exit(1);
     }
     check_invalid_input(argv[1]);                                            // check if the input is valid
