@@ -12,6 +12,92 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <signal.h>
+
+//serverport-  the port users will be connecting to
+int numbytes=101;
+
+int open_client_UDP(char* destaddr, char* serverport)
+{ 
+	int sockfd;
+	struct addrinfo hints, *servinfo, *p;
+	int rv;
+	int numbytes;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_INET; // set to AF_INET to use IPv4
+	hints.ai_socktype = SOCK_DGRAM;
+
+	if ((rv = getaddrinfo(destaddr, serverport, &hints, &servinfo)) != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return 1;
+	}
+
+	for(p = servinfo; p != NULL; p = p->ai_next) {
+		if ((sockfd = socket(p->ai_family, p->ai_socktype,
+				p->ai_protocol)) == -1) {
+			perror("talker: socket");
+			continue;
+		}
+
+		break;
+	}
+	connect (sockfd, p->ai_addr, p->ai_addrlen);
+	return sockfd;
+}
+
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
+{
+	if (sa->sa_family == AF_INET) {
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	}
+
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+int open_server_UDP(char* myport)
+{
+    int sockfd;
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    int numbytes;
+    struct sockaddr_storage their_addr;
+    char buf[numbytes];
+    socklen_t addr_len;
+    char s[INET6_ADDRSTRLEN];
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; // set to AF_INET to use IPv4
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags = AI_PASSIVE; // use my IP
+
+    if ((rv = getaddrinfo(NULL, myport, &hints, &servinfo)) != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+
+    // loop through all the results and bind to the first we can
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                p->ai_protocol)) == -1) {
+            perror("listener: socket");
+            continue;
+        }
+
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            perror("listener: bind");
+            continue;
+        }
+        break;
+    }
+    if (p == NULL) {
+        fprintf(stderr, "listener: failed to bind socket\n");
+        return 2;
+    }
+    freeaddrinfo(servinfo);
+    return sockfd;
+}
 
 
 /*
@@ -29,7 +115,7 @@ int open_server_TCP(char *port)
     serveradder.sin_family = AF_INET;
     serveradder.sin_port = htons(atoi(port));
     serveradder.sin_addr.s_addr = INADDR_ANY;
-    printf("socket(2) Sockfd = %d\n", sockfd);
+    // printf("socket(2) Sockfd = %d\n", sockfd);
     if (bind(sockfd, (struct sockaddr *)&serveradder, sizeof(serveradder)) == -1)
     {
         perror("bind");
@@ -46,7 +132,7 @@ int open_server_TCP(char *port)
         perror("accept");
         exit(1);
     }
-    printf("accept(2) Client_fd = %d\n", client_fd);
+    //printf("accept(2) Client_fd = %d\n", client_fd);
     return client_fd;
 }
 
@@ -67,7 +153,6 @@ int open_client_TCP(char *server_ip, char *server_port)
     // get address info
     if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-        // cleanup_and_exit(EXIT_FAILURE);
     }
 
     // loop through the results and connect to the first we can
@@ -87,12 +172,10 @@ int open_client_TCP(char *server_ip, char *server_port)
     }
 
     if (p == NULL) {
-        fprintf(stderr, "failed to connect\n");
-        // cleanup_and_exit(EXIT_FAILURE);
+        perror("failed to connect\n");
     }
 
     freeaddrinfo(res);  // free the linked list
-
     return sockfd;
 
 }
@@ -102,7 +185,7 @@ int run_programming(char *input)
     // Ensure input is not NULL
     if (input == NULL)
     {
-        fprintf(stderr, "Input string is NULL\n");
+        perror("Input string is NULL\n");
         return 1;
     }
 
@@ -123,17 +206,17 @@ int run_programming(char *input)
     argv[argc] = NULL; // Null-terminate the array
 
     // Debug: Print each token to see the result of strtok
-    for (int i = 0; i < argc; i++)
-    {
-        printf("argv[%d]: %s\n", i, argv[i]);
-    }
+    // for (int i = 0; i < argc; i++)
+    // {
+    //     printf("argv[%d]: %s\n", i, argv[i]);
+    // }
     // Check if any command was provided
     if (argc == 0)
     {
-        fprintf(stderr, "Without arguments\n");
+        perror("Without arguments\n");
         return 1;
     }
-    printf("before fork\n");
+    //printf("before fork\n");
     // Fork and execute the command
     int pid;
     if ((pid = fork()) == -1)
@@ -159,14 +242,26 @@ int run_programming(char *input)
 
 int i_case(char *input)
 {
+    if (strncmp(input, "UDPS", 4) == 0)
+    {
+        char *port = input + 4; // port start after 4 chars
+        //printf("port: %s\n", port);
+        int c_fd = open_server_UDP(port);
+        //printf("c_fd in i case: %d\n", c_fd);
+        if (dup2(c_fd, STDIN_FILENO) == -1)
+        {
+            perror("dup2- UDPS i case");
+            close(c_fd);
+        }
+    }
 
-    printf("input out: %s\n", input);
+   // printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        printf("port: %s\n", port);
+        //printf("port: %s\n", port);
         int c_fd = open_server_TCP(port);
-        printf("c_fd in i case: %d\n", c_fd);
+        //printf("c_fd in i case: %d\n", c_fd);
         if (dup2(c_fd, STDIN_FILENO) == -1)
         {
             perror("dup2- TCPS i case");
@@ -179,13 +274,13 @@ int i_case(char *input)
         char *localhost;
         if ((localhost = strtok(input, ",")) == NULL)
         {
-            printf("Didn't get localhost");
+            perror("Didn't get localhost");
             exit(1);
         }
         char *port_char;
         if ((port_char = strtok(NULL, ",")) == NULL)
         {
-            printf("Didn't get port");
+            perror("Didn't get port");
             exit(1);
         }
         int sockfd = open_client_TCP(localhost, port_char);
@@ -199,13 +294,14 @@ int i_case(char *input)
 }
 int o_case(char *input)
 {
-    printf("input out: %s\n", input);
+
+    //printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        printf("port o case: %s\n", port);
+        //printf("port o case: %s\n", port);
         int c_fd = open_server_TCP(port);
-        printf("c_fd in o case: %d\n", c_fd);
+        //printf("c_fd in o case: %d\n", c_fd);
         if (dup2(c_fd, STDOUT_FILENO) == -1)
         {
             perror("dup2- TCPS o case");
@@ -218,19 +314,41 @@ int o_case(char *input)
         char *localhost;
         if ((localhost = strtok(input, ",")) == NULL)
         {
-            printf("no localhost");
+            perror("no localhost");
             exit(1);
         }
         char *port_char;
         if ((port_char = strtok(NULL, ",")) == NULL)
         {
-            printf("no port");
+            perror("no port");
             exit(1);
         }
         int sockfd = open_client_TCP(localhost, port_char);
         if (dup2(sockfd, STDOUT_FILENO) == -1)
         {
             perror("dup2- TCPC o case");
+            close(sockfd);
+        }
+    }
+    if (strncmp(input, "UDPC", 4) == 0)
+    {
+        input = input + 4; // port start after 4 chars
+        char *localhost;
+        if ((localhost = strtok(input, ",")) == NULL)
+        {
+            perror("no localhost");
+            exit(1);
+        }
+        char *port_char;
+        if ((port_char = strtok(NULL, ",")) == NULL)
+        {
+            perror("no port");
+            exit(1);
+        }
+        int sockfd = open_client_UDP(localhost, port_char);
+        if (dup2(sockfd, STDOUT_FILENO) == -1)
+        {
+            perror("dup2- UDP o case");
             close(sockfd);
         }
     }
@@ -260,13 +378,13 @@ int b_case(char *input)
         char *localhost;
         if ((localhost = strtok(input, ",")) == NULL)
         {
-            printf("Didn't get localhost");
+            perror("Didn't get localhost");
             exit(1);
         }
         char *port_char;
         if ((port_char = strtok(NULL, ",")) == NULL)
         {
-            printf("Didn't get port");
+            perror("Didn't get port");
             exit(1);
         }
 
@@ -284,25 +402,44 @@ int b_case(char *input)
     }
     return 0;
 }
-// int e_case(char *input)
-// {
 
-//     return 0;
-// }
+void handle_alarm(int sig) {
+    printf("Time out\n");
+    exit(1);
+}
+
+int t_case(char *time_in_sec)
+{
+    printf("Time: %s\n", time_in_sec);
+    if (time_in_sec == NULL) {
+        perror("Time is NULL\n");
+        exit(1);
+    }
+   int time = atoi(time_in_sec);
+    if (time < 0) {
+        perror("Time should be positive\n");
+        exit(1);
+    }
+    signal(SIGALRM, handle_alarm);
+    alarm(time);
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        printf("Error\n");
+        perror("Error\n");
         exit(1);
     }
     char *re_val_e;
     int re_val_b;
     int re_val_i;
     int re_val_o;
+    int re_val_timeout;
     // optarg
     int opt;
-    while ((opt = getopt(argc, argv, "e:b:i:o:")) != -1)
+    while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1)
     {
         {
             switch (opt)
@@ -319,10 +456,12 @@ int main(int argc, char *argv[])
             case 'o':
                 re_val_o = o_case(optarg); // optarg is the argument after -i
                 break;
+            case 't':
+                re_val_timeout = t_case(optarg); // optarg is the argument after -i
+                break;
 
             default:
                 fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
-
                 exit(EXIT_FAILURE);
             }
         }

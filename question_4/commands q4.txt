@@ -1,0 +1,7 @@
+./mynetcat -e "./ttt 123456789" -i UDPS4060 -t 30
+./mynetcat -e "./ttt 123456789" -i UDPS4055
+
+
+nc -u localhost 4050
+
+./mynetcat -e "./ttt 123456789" -i TCPS4050
