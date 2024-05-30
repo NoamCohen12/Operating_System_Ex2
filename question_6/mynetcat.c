@@ -76,7 +76,7 @@ int open_server_unix_stream(const char *socket_path)
     struct sockaddr_un clientaddr;
     socklen_t addrlen;
     int sockfd;
-        sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
         perror("socket");
@@ -509,16 +509,31 @@ int o_case(char *input)
     }
     if (strncmp(input, "UDSC", 4) == 0)
     {
+        printf("input1: %s\n", input);
+
         input = input + 4; // check the input after 4 chars D or S
         if (strncmp(input, "D", 1) == 0)
         {
             input++;
+            printf("input2: %s\n", input);
             int sockfd = open_client_unix_datagram(input);
+            if (dup2(sockfd, STDOUT_FILENO) == -1)
+            {
+                perror("dup2- TCPC o case");
+                close(sockfd);
+            }
         }
-        else if (strncmp(input, "S", 1) == 0)
+        else if (strncmp(input, "S", 1) == 0)//not open
         {
             input++;
+            printf("input3: %s\n", input);
+
             int sockfd = open_client_unix_stream(input);
+            if (dup2(sockfd, STDOUT_FILENO) == -1)
+            {
+                perror("dup2- TCPC o case");
+                close(sockfd);
+            }
         }
     }
     return 0;
