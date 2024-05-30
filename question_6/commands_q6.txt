@@ -1,8 +1,8 @@
 
-./mynetcat -e "./ttt 123456789" -i UDSSD      UNIX DOMAIN SOCKET SERVER DIGRAM
-./mynetcat -e "./ttt 123456789" -i UDSSS      UNIX DOMAIN SOCKET SERVER STREAM
+./mynetcat -e "./ttt 123456789" -i UDSSD      //UNIX DOMAIN SOCKET SERVER DIGRAM
+./mynetcat -e "./ttt 123456789" -i UDSSS      //UNIX DOMAIN SOCKET SERVER STREAM
 
-./mynetcat -e "./ttt 123456789" -o UDSCD      UNIX DOMAIN SOCKET CLIENT STREAM
-./mynetcat -e "./ttt 123456789" -o UDSCS      UNIX DOMAIN SOCKET CLIENT DIGRAM
+./mynetcat -e "./ttt 123456789" -o UDSCD      //UNIX DOMAIN SOCKET CLIENT STREAM
+./mynetcat -e "./ttt 123456789" -o UDSCS      //UNIX DOMAIN SOCKET CLIENT DIGRAM
                 
        
