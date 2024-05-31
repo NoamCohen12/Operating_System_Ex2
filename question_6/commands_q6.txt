@@ -1,8 +1,35 @@
+#stream
 
-./mynetcat -e "./ttt 123456789" -i UDSSD      //UNIX DOMAIN SOCKET SERVER DIGRAM
-./mynetcat -e "./ttt 123456789" -i UDSSS      //UNIX DOMAIN SOCKET SERVER STREAM
+    server
+        ./mynetcat -e "./ttt 123456789" -i UDSSSquestion_6  //-------------------- input from client
+    client 
+        nc -U question_6 
 
-./mynetcat -e "./ttt 123456789" -o UDSCD      //UNIX DOMAIN SOCKET CLIENT STREAM
-./mynetcat -e "./ttt 123456789" -o UDSCS      //UNIX DOMAIN SOCKET CLIENT DIGRAM
-                
-       
+    server
+        ./mynetcat -e "./ttt 123456789" -o UDSSSquestion_6 //--------------------- output to client
+    client 
+        nc -U question_6 
+    
+    client
+        ./mynetcat -e "./ttt 123456789" -i UDSCSquestion_6
+    server
+        nc -lU question_6                                 // open server netcat
+
+    client
+        ./mynetcat -e "./ttt 123456789" -o UDSCSquestion_6
+    server
+        nc -lU question_6                                 // open server netcat
+
+#datagram
+
+    server
+        ./mynetcat -e "./ttt 123456789" -i UDSSDquestion_6  //--------------- support only o
+    client
+        socat - UNIX-SENDTO:question_6
+
+
+    client
+        ./mynetcat -e "./ttt 123456789" -o UDSCDquestion_6 //--------------- support only i
+    server
+        socat UNIX-RECVFROM:question_6,fork -
+

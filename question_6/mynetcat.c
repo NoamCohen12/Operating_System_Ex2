@@ -22,6 +22,7 @@
 
 int open_client_unix_datagram(const char *socket_path)
 {
+    printf("client unix datagram\n");
     int sockfd;
     struct sockaddr_un server_addr;
 
@@ -37,6 +38,14 @@ int open_client_unix_datagram(const char *socket_path)
     memset(&server_addr, 0, sizeof(struct sockaddr_un));
     server_addr.sun_family = AF_UNIX;
     strncpy(server_addr.sun_path, socket_path, sizeof(server_addr.sun_path) - 1);
+    server_addr.sun_path[sizeof(server_addr.sun_path) - 1] = '\0';
+
+       // Optional: You can connect the socket for convenience
+    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
+        perror("connect");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
 
     return sockfd;
 }
@@ -429,24 +438,40 @@ int i_case(char *input)
             close(sockfd);
         }
     }
-    if (strncmp(input, "UDSS", 4) == 0)
+    if (strncmp(input, "UDSSD", 5) == 0)
     {
-        printf("UDSS\n");
-        input = input + 4; // check the input after 4 chars D or S
-        if (strncmp(input, "D", 1) == 0)
+        input = input + 5; // check the input after 5 chars D or S
+        int sockfd = open_server_unix_udp(input);
+        if (dup2(sockfd, STDIN_FILENO) == -1)
         {
-            printf("D\n");
-            input++;
-            int sockfd = open_server_unix_udp(input);
+            perror("dup2- UDSSD i case");
+            close(sockfd);
         }
-        else if (strncmp(input, "S", 1) == 0)
-        {
-            input++;
-            int sockfd = open_server_unix_stream(input);
-        }
-        return 0;
+
     }
+    if (strncmp(input, "UDSSS", 5) == 0)
+    {
+        input = input + 5; // check the input after 5 chars D or S
+        int sockfd = open_server_unix_stream(input);
+        if (dup2(sockfd, STDIN_FILENO) == -1)
+        {
+            perror("dup2- UDSSS i case");
+            close(sockfd);
+        }
+    }
+    if (strncmp(input, "UDSCS", 5) == 0)
+    {
+        input = input + 5; // check the input after 5 chars D or S
+        int sockfd = open_client_unix_stream(input);
+        if (dup2(sockfd, STDIN_FILENO) == -1)
+        {
+            perror("dup2- UDSCS i case");
+            close(sockfd);
+        }
+    }
+    return 0;
 }
+
 int o_case(char *input)
 {
 
@@ -507,35 +532,37 @@ int o_case(char *input)
             close(sockfd);
         }
     }
-    if (strncmp(input, "UDSC", 4) == 0)
+    if (strncmp(input, "UDSCD", 5) == 0)
     {
-        printf("input1: %s\n", input);
-
-        input = input + 4; // check the input after 4 chars D or S
-        if (strncmp(input, "D", 1) == 0)
+        input = input + 5; // check the input after 5 chars D or S
+        int sockfd = open_client_unix_datagram(input);
+        if (dup2(sockfd, STDOUT_FILENO) == -1)
         {
-            input++;
-            printf("input2: %s\n", input);
-            int sockfd = open_client_unix_datagram(input);
-            if (dup2(sockfd, STDOUT_FILENO) == -1)
-            {
-                perror("dup2- TCPC o case");
-                close(sockfd);
-            }
-        }
-        else if (strncmp(input, "S", 1) == 0)//not open
-        {
-            input++;
-            printf("input3: %s\n", input);
-
-            int sockfd = open_client_unix_stream(input);
-            if (dup2(sockfd, STDOUT_FILENO) == -1)
-            {
-                perror("dup2- TCPC o case");
-                close(sockfd);
-            }
+            perror("dup2- UDSCD o case");
+            close(sockfd);
         }
     }
+    if (strncmp(input, "UDSSS", 5) == 0)
+    {
+        input = input + 5; // check the input after 5 chars D or S
+        int sockfd = open_server_unix_stream(input);
+        if (dup2(sockfd, STDOUT_FILENO) == -1)
+        {
+            perror("dup2- UDSSS o case");
+            close(sockfd);
+        }
+    }
+    if (strncmp(input, "UDSCS",5) == 0)
+    {
+        input = input + 5; // check the input after 5 chars D or S
+        int sockfd = open_client_unix_stream(input);
+        if (dup2(sockfd, STDOUT_FILENO) == -1)
+        {
+            perror("dup2- UDSCS o case");
+            close(sockfd);
+        } 
+    }
+    
     return 0;
 }
 // both- i and o
