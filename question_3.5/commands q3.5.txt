@@ -1,0 +1,20 @@
+--------------------------------------------------------------
+//message from client
+server
+    ./mynetcat -i TCPS4050
+client
+    nc localhost 4050
+
+--------------------------------------------------------------
+not work
+
+//message to client
+server
+    ./mynetcat -o TCPS4052
+client
+    nc localhost 4052
+
+
+./mynetcat -o TCPClocalhost,4152
+
+nc -l -p 4152

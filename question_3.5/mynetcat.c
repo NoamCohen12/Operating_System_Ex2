@@ -283,6 +283,23 @@ int b_case(char *input)
     return 0;
 }
 
+void chat_case(){
+    bool flag = true;
+char temp[100]; // Allocate a buffer of size 100
+
+  while(flag){
+   scanf("%99s", temp); // Read at most 99 characters into temp
+   if (strcmp(temp , "exit")==0)
+   {
+    flag = false;
+   }
+   printf("You have a new message: %s\n", temp);
+}
+    printf("end");
+
+}
+
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -302,7 +319,7 @@ int main(int argc, char *argv[])
             switch (opt)
             {
             case 'e':
-                //re_val_e = optarg; // optarg is the argument after -e
+                re_val_e = optarg; // optarg is the argument after -e
                 break;
             case 'b':
                 re_val_b = b_case(optarg); // optarg is the argument after -b
@@ -320,18 +337,16 @@ int main(int argc, char *argv[])
             }
         }
     }
-bool flag = true;
-char temp[100]; // Allocate a buffer of size 100
+    printf("re_val_e: %s\n", re_val_e);
 
-  while(flag){
-   scanf("%99s", temp); // Read at most 99 characters into temp
-   if (strcmp(temp , "exit")==0)
-   {
-    flag = false;
-   }
-   printf("You have a new message: %s\n", temp);
-}
-    printf("end");
+ if (re_val_e){
+    run_programming(re_val_e);
+ }
+ else{
+    chat_case();
+ }
+
 close(1);
     return 0;
 }
+

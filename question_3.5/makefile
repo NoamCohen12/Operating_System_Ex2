@@ -1,10 +1,12 @@
 .PHONY: all clean
 
-all: mynetcat 
+all: mynetcat ttt
 
 mynetcat: mynetcat.c
 	gcc mynetcat.c -o mynetcat
 
+ttt: ttt.c
+	gcc ttt.c -o ttt
 
 clean:
-	rm -f *.o mynetcat
+	rm -f *.o mynetcat ttt
