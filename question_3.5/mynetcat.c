@@ -14,7 +14,6 @@
 #include <netdb.h>
 #include <stdbool.h>
 
-
 /*
 open socket - server side
 return the client fd
@@ -47,7 +46,7 @@ int open_server_TCP(char *port)
         perror("accept");
         exit(1);
     }
-    //printf("accept(2) Client_fd = %d\n", client_fd);
+    // printf("accept(2) Client_fd = %d\n", client_fd);
     return client_fd;
 }
 
@@ -66,33 +65,37 @@ int open_client_TCP(char *server_ip, char *server_port)
     hints.ai_socktype = SOCK_STREAM;
 
     // get address info
-    if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0) {
+    if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0)
+    {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
     }
 
     // loop through the results and connect to the first we can
-    for (p = res; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+    for (p = res; p != NULL; p = p->ai_next)
+    {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+        {
             perror("error creating socket");
             continue;
         }
 
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+        {
             close(sockfd);
             perror("error connecting to server");
             continue;
         }
 
-        break;  // if we get here, we must have connected successfully
+        break; // if we get here, we must have connected successfully
     }
 
-    if (p == NULL) {
+    if (p == NULL)
+    {
         perror("failed to connect\n");
     }
 
-    freeaddrinfo(res);  // free the linked list
+    freeaddrinfo(res); // free the linked list
     return sockfd;
-
 }
 
 int run_programming(char *input)
@@ -131,8 +134,8 @@ int run_programming(char *input)
         perror("Without arguments\n");
         return 1;
     }
-    //printf("before fork\n");
-    // Fork and execute the command
+    // printf("before fork\n");
+    //  Fork and execute the command
     int pid;
     if ((pid = fork()) == -1)
     {
@@ -158,13 +161,13 @@ int run_programming(char *input)
 int i_case(char *input)
 {
 
-   // printf("input out: %s\n", input);
+    // printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        //printf("port: %s\n", port);
+        // printf("port: %s\n", port);
         int c_fd = open_server_TCP(port);
-        //printf("c_fd in i case: %d\n", c_fd);
+        // printf("c_fd in i case: %d\n", c_fd);
         if (dup2(c_fd, STDIN_FILENO) == -1)
         {
             perror("dup2- TCPS i case");
@@ -197,13 +200,13 @@ int i_case(char *input)
 }
 int o_case(char *input)
 {
-    //printf("input out: %s\n", input);
+    // printf("input out: %s\n", input);
     if (strncmp(input, "TCPS", 4) == 0)
     {
         char *port = input + 4; // port start after 4 chars
-        //printf("port o case: %s\n", port);
+        // printf("port o case: %s\n", port);
         int c_fd = open_server_TCP(port);
-        //printf("c_fd in o case: %d\n", c_fd);
+        // printf("c_fd in o case: %d\n", c_fd);
         if (dup2(c_fd, STDOUT_FILENO) == -1)
         {
             perror("dup2- TCPS o case");
@@ -283,22 +286,23 @@ int b_case(char *input)
     return 0;
 }
 
-void chat_case(){
+void chat_case()
+{
     bool flag = true;
-char temp[100]; // Allocate a buffer of size 100
+    char temp[100]; // Allocate a buffer of size 100
 
-  while(flag){
-   scanf("%99s", temp); // Read at most 99 characters into temp
-   if (strcmp(temp , "exit")==0)
-   {
-    flag = false;
-   }
-   printf("You have a new message: %s\n", temp);
-}
+    while (flag)
+    {
+        scanf("%99s", temp); // Read at most 99 characters into temp
+        if (strcmp(temp, "exit") == 0)
+        {
+            flag = false;
+        }
+        printf("You have a new message: %s\n", temp);
+        fflush(stdout);
+    }
     printf("end");
-
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -315,38 +319,37 @@ int main(int argc, char *argv[])
     int opt;
     while ((opt = getopt(argc, argv, "e:b:i:o:")) != -1)
     {
+        switch (opt)
         {
-            switch (opt)
-            {
-            case 'e':
-                re_val_e = optarg; // optarg is the argument after -e
-                break;
-            case 'b':
-                re_val_b = b_case(optarg); // optarg is the argument after -b
-                break;
-            case 'i':
-                re_val_i = i_case(optarg); // optarg is the argument after -i
-                break;
-            case 'o':
-                re_val_o = o_case(optarg); // optarg is the argument after -i
-                break;
+        case 'e':
+            re_val_e = optarg; // optarg is the argument after -e
+            break;
+        case 'b':
+            re_val_b = b_case(optarg); // optarg is the argument after -b
+            break;
+        case 'i':
+            re_val_i = i_case(optarg); // optarg is the argument after -i
+            break;
+        case 'o':
+            re_val_o = o_case(optarg); // optarg is the argument after -i
+            break;
 
-            default:
-                fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
-                exit(EXIT_FAILURE);
-            }
+        default:
+            fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
+            exit(EXIT_FAILURE);
         }
     }
     printf("re_val_e: %s\n", re_val_e);
 
- if (re_val_e){
-    run_programming(re_val_e);
- }
- else{
-    chat_case();
- }
+    if (re_val_e)
+    {
+        run_programming(re_val_e);
+    }
+    else
+    {
+        chat_case();
+    }
 
-close(1);
+    close(1);
     return 0;
 }
-
