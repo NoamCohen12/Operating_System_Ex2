@@ -3,10 +3,10 @@
 all: mynetcat ttt
 
 mynetcat: mynetcat.c
-	gcc mynetcat.c -o mynetcat
+	gcc mynetcat.c  -fprofile-arcs -ftest-coverage -Wall -g -o mynetcat
 
 ttt: ttt.c
-	gcc ttt.c -o ttt
+	gcc ttt.c -fprofile-arcs -ftest-coverage -Wall -g -o ttt
 
 clean:
-	rm -f *.o ttt mynetcat
+	rm -f *.o ttt mynetcat *.gcno *.gcda *.gcovs

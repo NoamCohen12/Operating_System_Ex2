@@ -74,11 +74,11 @@ void check_invalid_input(char *string_num)
         arr[string_num[i] - '0']++;
     }
 
-    if (arr[0] > 0)
-    {
-        printf("Do not enter the number 0\n");
-        exit(1);
-    }
+    // if (arr[0] > 0)
+    // {
+    //     printf("Do not enter the number 0\n");
+    //     exit(1);
+    // }
 
     for (size_t i = 1; i < length; i++)
     {

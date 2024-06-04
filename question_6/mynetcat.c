@@ -181,10 +181,10 @@ int open_server_UDP(char *myport) {
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;
-    struct sockaddr_storage their_addr;
-    char buf[101];
-    socklen_t addr_len;
-    char s[INET6_ADDRSTRLEN];
+    //struct sockaddr_storage their_addr;
+    //char buf[101];
+    //socklen_t addr_len;
+    //char s[INET6_ADDRSTRLEN];
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;  // set to AF_INET to use IPv4
@@ -544,7 +544,6 @@ int main(int argc, char *argv[]) {
     char *re_val_b;
     char *re_val_i;
     char *re_val_o;
-    int re_val_timeout;
     // optarg
     int opt;
     while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1) {
@@ -566,7 +565,7 @@ int main(int argc, char *argv[]) {
                     o_case(optarg);  // optarg is the argument after -i
                     break;
                 case 't':
-                    re_val_timeout = t_case(optarg);  // optarg is the argument after -i
+                   t_case(optarg);  // optarg is the argument after -i
                     break;
 
                 default:
