@@ -1,0 +1,25 @@
+//input with run error 
+./ttt 12345678
+./ttt 123456781 kmkmkm
+
+
+//input with bad Initialize
+./ttt 123456781
+./ttt 123456780
+
+//input with "You entered a number that is already taken" "draw"
+ ./ttt 123456789 23597
+
+
+ //input with win
+ ./ttt 123456789  2346
+
+ //input with lost
+ ./ttt 123456789 936
+
+ //input with main diagonal
+ ./ttt 234567891 159
+
+//input with win in last turn 
+./ttt 123456789 3468 
+
