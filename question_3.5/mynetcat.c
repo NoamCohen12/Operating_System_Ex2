@@ -302,6 +302,7 @@ void chat_case()
         fflush(stdout);
     }
     printf("end");
+    
 }
 
 int main(int argc, char *argv[])
