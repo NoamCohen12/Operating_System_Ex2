@@ -2,6 +2,7 @@
     "files.associations": {
         "string_view": "c",
         "numbers": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "*.tcc": "c"
     }
 }

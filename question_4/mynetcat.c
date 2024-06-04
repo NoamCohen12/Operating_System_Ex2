@@ -13,6 +13,11 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <signal.h>
+#include <stdbool.h>
+
+int input_fd = STDIN_FILENO;
+int output_fd = STDOUT_FILENO;
+
 
 //serverport-  the port users will be connecting to
 int numbytes=101;
@@ -248,11 +253,7 @@ int i_case(char *input)
         //printf("port: %s\n", port);
         int c_fd = open_server_UDP(port);
         //printf("c_fd in i case: %d\n", c_fd);
-        if (dup2(c_fd, STDIN_FILENO) == -1)
-        {
-            perror("dup2- UDPS i case");
-            close(c_fd);
-        }
+        input_fd = c_fd;
     }
 
    // printf("input out: %s\n", input);
@@ -262,11 +263,7 @@ int i_case(char *input)
         //printf("port: %s\n", port);
         int c_fd = open_server_TCP(port);
         //printf("c_fd in i case: %d\n", c_fd);
-        if (dup2(c_fd, STDIN_FILENO) == -1)
-        {
-            perror("dup2- TCPS i case");
-            close(c_fd);
-        }
+        input_fd = c_fd;
     }
     if (strncmp(input, "TCPC", 4) == 0)
     {
@@ -284,11 +281,8 @@ int i_case(char *input)
             exit(1);
         }
         int sockfd = open_client_TCP(localhost, port_char);
-        if (dup2(sockfd, STDIN_FILENO) == -1)
-        {
-            perror("dup2- TCPC i case");
-            close(sockfd);
-        }
+        input_fd = sockfd;
+
     }
     return 0;
 }
@@ -302,11 +296,7 @@ int o_case(char *input)
         //printf("port o case: %s\n", port);
         int c_fd = open_server_TCP(port);
         //printf("c_fd in o case: %d\n", c_fd);
-        if (dup2(c_fd, STDOUT_FILENO) == -1)
-        {
-            perror("dup2- TCPS o case");
-            close(c_fd);
-        }
+        output_fd = c_fd;
     }
     if (strncmp(input, "TCPC", 4) == 0)
     {
@@ -324,11 +314,8 @@ int o_case(char *input)
             exit(1);
         }
         int sockfd = open_client_TCP(localhost, port_char);
-        if (dup2(sockfd, STDOUT_FILENO) == -1)
-        {
-            perror("dup2- TCPC o case");
-            close(sockfd);
-        }
+        output_fd = sockfd;
+
     }
     if (strncmp(input, "UDPC", 4) == 0)
     {
@@ -346,11 +333,8 @@ int o_case(char *input)
             exit(1);
         }
         int sockfd = open_client_UDP(localhost, port_char);
-        if (dup2(sockfd, STDOUT_FILENO) == -1)
-        {
-            perror("dup2- UDP o case");
-            close(sockfd);
-        }
+        output_fd = sockfd;
+
     }
     return 0;
 }
@@ -361,16 +345,8 @@ int b_case(char *input)
     {
         char *port = input + 4; // port start after 4 chars
         int c_fd = open_server_TCP(port);
-        if (dup2(c_fd, STDOUT_FILENO) == -1)
-        {
-            perror("dup2- b TCPS o case");
-            close(c_fd);
-        }
-        if (dup2(c_fd, STDIN_FILENO) == -1)
-        {
-            perror("dup2- b TCPS i case");
-            close(c_fd);
-        }
+        input_fd = c_fd;
+        output_fd = c_fd;
     }
     if (strncmp(input, "TCPC", 4) == 0)
     {
@@ -389,16 +365,8 @@ int b_case(char *input)
         }
 
         int sockfd = open_client_TCP(localhost, port_char);
-        if (dup2(sockfd, STDOUT_FILENO) == -1)
-        {
-            perror("dup2- b TCPC o case");
-            close(sockfd);
-        }
-        if (dup2(sockfd, STDIN_FILENO) == -1)
-        {
-            perror("dup2- b TCPC i case");
-            close(sockfd);
-        }
+        input_fd = sockfd;
+        output_fd = sockfd;
     }
     return 0;
 }
@@ -425,6 +393,38 @@ int t_case(char *time_in_sec)
     return 0;
 }
 
+
+void chat_case() {
+    fd_set readfds; // Set of file descriptors
+    int maxfd = input_fd; 
+    while (true) {
+        FD_ZERO(&readfds);
+        FD_SET(input_fd, &readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+
+        select(maxfd + 1, &readfds, NULL, NULL, NULL);
+
+        if (FD_ISSET(input_fd, &readfds) && input_fd != STDIN_FILENO) {
+            char temp[100] = {0};       // Allocate a buffer of size 100
+            read(input_fd, temp, 100);  // Read at most 99 characters into temp
+            temp[99] = '\0';            // Null-terminate the buffer
+            if (strcmp(temp, "exit") == 0) {
+                break;
+            }
+            write(STDOUT_FILENO, temp, strlen(temp));  // Write the contents of temp to the standard output
+        }
+        if (FD_ISSET(STDIN_FILENO, &readfds) && output_fd != STDOUT_FILENO) {
+            char temp[100] = {0};           // Allocate a buffer of size 100
+            read(STDIN_FILENO, temp, 100);  // Read at most 99 characters into temp
+            temp[99] = '\0';                // Null-terminate the buffer
+            if (strcmp(temp, "exit") == 0) {
+                break;
+            }
+            write(output_fd, temp, strlen(temp));  // Write the contents of temp to the output_fd (a socket or a file)
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -433,28 +433,30 @@ int main(int argc, char *argv[])
         exit(1);
     }
     char *re_val_e;
-    int re_val_b;
-    int re_val_i;
-    int re_val_o;
+    char *re_val_b;
+    char *re_val_i;
+    char *re_val_o;
     int re_val_timeout;
     // optarg
     int opt;
     while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1)
     {
         {
-            switch (opt)
-            {
+            switch (opt) {
             case 'e':
-                re_val_e = optarg; // optarg is the argument after -e
+                re_val_e = optarg;  // optarg is the argument after -e
                 break;
             case 'b':
-                re_val_b = b_case(optarg); // optarg is the argument after -b
+                re_val_b = optarg;
+                b_case(optarg);  // optarg is the argument after -b
                 break;
             case 'i':
-                re_val_i = i_case(optarg); // optarg is the argument after -i
+                re_val_i = optarg;
+                i_case(optarg);  // optarg is the argument after -i
                 break;
             case 'o':
-                re_val_o = o_case(optarg); // optarg is the argument after -i
+                re_val_o = optarg;
+                o_case(optarg);  // optarg is the argument after -i
                 break;
             case 't':
                 re_val_timeout = t_case(optarg); // optarg is the argument after -i
@@ -466,7 +468,29 @@ int main(int argc, char *argv[])
             }
         }
     }
-    run_programming(re_val_e);
+
+    if (re_val_b != NULL && (re_val_o != NULL || re_val_i != NULL)) {
+        perror("Error: -b can't be used with -i or -o\n");
+        exit(1);
+    }
+    if (re_val_e) {
+        if (input_fd != STDIN_FILENO) {
+            if (dup2(input_fd, STDIN_FILENO) == -1) {
+                perror("dup2- e case");
+                close(input_fd);
+            }
+        }
+        if (output_fd != STDOUT_FILENO) {
+            if (dup2(output_fd, STDOUT_FILENO) == -1) {
+                perror("dup2- e case");
+                close(output_fd);
+            }
+        }
+        run_programming(re_val_e);
+    } else {
+        chat_case();
+    }
     printf("end");
     close(1);
+    return 0;
 }

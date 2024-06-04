@@ -29,6 +29,7 @@ int open_server_TCP(char *port)
     serveradder.sin_family = AF_INET;
     serveradder.sin_port = htons(atoi(port));
     serveradder.sin_addr.s_addr = INADDR_ANY;
+
     // printf("socket(2) Sockfd = %d\n", sockfd);
     if (bind(sockfd, (struct sockaddr *)&serveradder, sizeof(serveradder)) == -1)
     {
