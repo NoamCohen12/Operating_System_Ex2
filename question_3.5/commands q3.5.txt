@@ -6,7 +6,6 @@ client
     nc localhost 4050
 
 --------------------------------------------------------------
-not work
 
 //message to client
 server

@@ -74,11 +74,11 @@ void check_invalid_input(char *string_num)
         arr[string_num[i] - '0']++;
     }
 
-    if (arr[0] > 0)
-    {
-        printf("Do not enter the number 0\n");
-        exit(1);
-    }
+    // if (arr[0] > 0)
+    // {
+    //     printf("Do not enter the number 0\n");
+    //     exit(1);
+    // }
 
     for (size_t i = 1; i < length; i++)
     {
@@ -123,11 +123,7 @@ int main(int argc, char *argv[])
                     printf("win\n");
                     exit(0);
                 }
-                else if (check_winner(matrix) == 'O')
-                {
-                    printf("lost\n");
-                    exit(0);
-                }
+               
                 count_of_place_empty++;
             }
             else
@@ -137,6 +133,7 @@ int main(int argc, char *argv[])
         }
         else
         {
+            printf("count of place empty:%d",count_of_place_empty);
             for (size_t i = 8; i >= 0; i--)
             {
                 if (matrix[strategy[i] / 3][strategy[i] % 3] == ' ')
@@ -154,13 +151,11 @@ int main(int argc, char *argv[])
                         printf("win\n");
                         exit(0);
                     }
-                    if (check_winner(matrix) == 'O')
-                    {
-                        printf("lost\n");
-                        exit(0);
-                    }
-
-                    count_of_place_empty++;
+                    // if (check_winner(matrix) == 'O')
+                    // {
+                    //     printf("lost\n");
+                    //     exit(0);
+                    // }
                 }
             }
         }
@@ -177,11 +172,6 @@ int main(int argc, char *argv[])
                     matrix[user_pos / 3][user_pos % 3] = 'O';
                     printf("You chose: (%d,%d)\n", user_pos / 3 + 1, user_pos % 3 + 1);
                     print_matrix(matrix);
-                    if (check_winner(matrix) == 'X')
-                    {
-                        printf("win\n");
-                        exit(0);
-                    }
                     if (check_winner(matrix) == 'O')
                     {
                         printf("lost\n");
@@ -205,6 +195,5 @@ int main(int argc, char *argv[])
             }
         }
     }
-    fflush(stdout);
 
 }

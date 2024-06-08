@@ -1,0 +1,76 @@
+inputs tcp:
+./mynetcat -e "./ttt 123456789" -i TCPS4050
+./mynetcat  -o TCPClocalhost,4050 
+
+./mynetcat -e "./ttt 123456789" -o TCPS4050
+./mynetcat  -i TCPClocalhost,4050
+
+
+./mynetcat -e "./ttt 123456789" -b TCPS4150
+ nc localhost 4150
+
+# server
+./mynetcat -e "./ttt 123456789" -b TCPS4269
+# client
+./mynetcat -b TCPClocalhost,4269
+
+
+
+
+input chat:
+server
+    ./mynetcat -i TCPS4050
+client
+    nc localhost 4050
+
+
+input with time:
+
+    ./mynetcat -e "./ttt 123456789" -i UDPS4060 -t 30
+./mynetcat -o UDPClocalhost,4060 
+
+
+
+input udp:
+./mynetcat -e "./ttt 123456789" -i UDPS4060 -t 30
+./mynetcat -o UDPClocalhost,4060 
+
+
+input unix datagram:
+  client
+        ./mynetcat -e "./ttt 123456789" -o UDSCDquestion_6 //--------------- support only i
+    server
+        socat UNIX-RECVFROM:question_6,fork -
+
+
+   server
+        ./mynetcat -e "./ttt 123456789" -i UDSSDquestion_6  //--------------- support only o
+    client
+        socat - UNIX-SENDTO:question_6
+
+
+input unix stream:
+ server
+        ./mynetcat -e "./ttt 123456789" -i UDSSSquestion_6  //-------------------- input from client
+    client 
+        nc -U question_6 
+
+    server
+        ./mynetcat -e "./ttt 123456789" -o UDSSSquestion_6 //--------------------- output to client
+    client 
+        nc -U question_6 
+    
+    client
+        ./mynetcat -e "./ttt 123456789" -i UDSCSquestion_6
+    server
+        nc -lU question_6                                 // open server netcat
+
+    client
+        ./mynetcat -e "./ttt 123456789" -o UDSCSquestion_6
+    server
+        nc -lU question_6                                 // open server netcat
+
+
+
+
+

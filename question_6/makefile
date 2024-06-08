@@ -9,4 +9,4 @@ ttt: ttt.c
 	gcc ttt.c -fprofile-arcs -ftest-coverage -Wall -g -o ttt
 
 clean:
-	rm -f *.o ttt mynetcat *.gcno *.gcda *.gcovs
+	rm -f *.o ttt mynetcat *.gcno *.gcda 

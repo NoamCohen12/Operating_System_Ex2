@@ -17,3 +17,10 @@
  ./mynetcat -i TCPS4150 -o TCPClocalhost,4152
 
  ./mynetcat -e "./ttt 123456789" -i TCPS4158 -o TCPClocalhost,4152
+
+
+# server
+./mynetcat -e "./ttt 123456789" -b TCPS4269
+# client
+./mynetcat -b TCPClocalhost,4269
+
