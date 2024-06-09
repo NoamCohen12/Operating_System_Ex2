@@ -5,4 +5,4 @@
 
 nc -u localhost 4050
 
-./mynetcat -e "./ttt 123456789" -i TCPS4050
+./mynetcat -e "./ttt 123456789" -i UDPS4060

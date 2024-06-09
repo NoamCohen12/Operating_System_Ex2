@@ -505,6 +505,7 @@ int t_case(char *time_in_sec) {
 
 
 void chat_case() {
+    printf("in chat case func\n");
     fd_set readfds;  // Set of file descriptors
     int maxfd = input_fd;
     while (true) {
@@ -533,6 +534,7 @@ void chat_case() {
             write(output_fd, temp, strlen(temp));  // Write the contents of temp to the output_fd (a socket or a file)
         }
     }
+
 }
 
 int main(int argc, char *argv[]) {
@@ -579,7 +581,7 @@ int main(int argc, char *argv[]) {
         perror("Error: -b can't be used with -i or -o\n");
         exit(1);
     }
-    if (re_val_e) {
+    if (re_val_e != NULL) {
         if (input_fd != STDIN_FILENO) {
             if (dup2(input_fd, STDIN_FILENO) == -1) {
                 perror("dup2- e case");
@@ -594,6 +596,7 @@ int main(int argc, char *argv[]) {
         }
         run_programming(re_val_e);
     } else {
+        printf ("chat case\n");
         chat_case();
     }
     printf("end");

@@ -1,7 +1,7 @@
         -:    0:Source:mynetcat.c
         -:    0:Graph:./mynetcat.gcno
         -:    0:Data:./mynetcat.gcda
-        -:    0:Runs:64
+        -:    0:Runs:54
         -:    1:// the command ./mync -e "./ttt 123456789"
         -:    2:#include <arpa/inet.h>
         -:    3:#include <errno.h>
@@ -24,29 +24,29 @@
         -:   20:int input_fd = STDIN_FILENO;
         -:   21:int output_fd = STDOUT_FILENO;
         -:   22:
-        2:   23:int open_client_unix_datagram(const char *socket_path) {
-        2:   24:    printf("client unix datagram\n");
+        1:   23:int open_client_unix_datagram(const char *socket_path) {
+        1:   24:    printf("client unix datagram\n");
         -:   25:    int sockfd;
         -:   26:    struct sockaddr_un server_addr;
         -:   27:
         -:   28:    // Create a Unix domain socket
-        2:   29:    sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-        2:   30:    if (sockfd == -1) {
+        1:   29:    sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
+        1:   30:    if (sockfd == -1) {
     #####:   31:        perror("socket");
     #####:   32:        exit(EXIT_FAILURE);
         -:   33:    }
         -:   34:
         -:   35:    // Initialize server address structure
-        2:   36:    memset(&server_addr, 0, sizeof(struct sockaddr_un));
-        2:   37:    server_addr.sun_family = AF_UNIX;
-        2:   38:    strncpy(server_addr.sun_path, socket_path, sizeof(server_addr.sun_path) - 1);
-        2:   39:    server_addr.sun_path[sizeof(server_addr.sun_path) - 1] = '\0';
+        1:   36:    memset(&server_addr, 0, sizeof(struct sockaddr_un));
+        1:   37:    server_addr.sun_family = AF_UNIX;
+        1:   38:    strncpy(server_addr.sun_path, socket_path, sizeof(server_addr.sun_path) - 1);
+        1:   39:    server_addr.sun_path[sizeof(server_addr.sun_path) - 1] = '\0';
         -:   40:
         -:   41:    // Optional: You can connect the socket for convenience
-        2:   42:    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
-        1:   43:        perror("connect");
-        1:   44:        close(sockfd);
-        1:   45:        exit(EXIT_FAILURE);
+        1:   42:    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
+    #####:   43:        perror("connect");
+    #####:   44:        close(sockfd);
+    #####:   45:        exit(EXIT_FAILURE);
         -:   46:    }
         -:   47:
         1:   48:    return sockfd;
@@ -78,98 +78,98 @@
         2:   74:    return sockfd;
         -:   75:}
         -:   76:
-        3:   77:int open_server_unix_stream(const char *socket_path) {
+        2:   77:int open_server_unix_stream(const char *socket_path) {
         -:   78:    struct sockaddr_un serveraddr;
         -:   79:    struct sockaddr_un clientaddr;
         -:   80:    socklen_t addrlen;
         -:   81:    int sockfd;
-        3:   82:    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-        3:   83:    if (sockfd == -1) {
+        2:   82:    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+        2:   83:    if (sockfd == -1) {
     #####:   84:        perror("socket");
     #####:   85:        exit(1);
         -:   86:    }
         -:   87:    // Ensure the socket file does not already exist
-        3:   88:    unlink(socket_path);
+        2:   88:    unlink(socket_path);
         -:   89:
-        3:   90:    memset(&serveraddr, 0, sizeof(struct sockaddr_un));
-        3:   91:    serveraddr.sun_family = AF_UNIX;
-        3:   92:    strncpy(serveraddr.sun_path, socket_path, sizeof(serveraddr.sun_path) - 1);
+        2:   90:    memset(&serveraddr, 0, sizeof(struct sockaddr_un));
+        2:   91:    serveraddr.sun_family = AF_UNIX;
+        2:   92:    strncpy(serveraddr.sun_path, socket_path, sizeof(serveraddr.sun_path) - 1);
         -:   93:
-        3:   94:    if (bind(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
+        2:   94:    if (bind(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1) {
     #####:   95:        perror("bind");
     #####:   96:        close(sockfd);
     #####:   97:        exit(1);
         -:   98:    }
         -:   99:
-        3:  100:    if (listen(sockfd, 5) == -1) {
+        2:  100:    if (listen(sockfd, 5) == -1) {
     #####:  101:        perror("listen");
     #####:  102:        close(sockfd);
     #####:  103:        exit(1);
         -:  104:    }
         -:  105:
         -:  106:    int client_fd;
-        3:  107:    addrlen = sizeof(clientaddr);
-        3:  108:    if ((client_fd = accept(sockfd, (struct sockaddr *)&clientaddr, &addrlen)) == -1) {
+        2:  107:    addrlen = sizeof(clientaddr);
+        2:  108:    if ((client_fd = accept(sockfd, (struct sockaddr *)&clientaddr, &addrlen)) == -1) {
     #####:  109:        perror("accept");
     #####:  110:        close(sockfd);
     #####:  111:        exit(1);
         -:  112:    }
         -:  113:
-        3:  114:    return client_fd;
+        2:  114:    return client_fd;
         -:  115:}
         -:  116:
-        2:  117:int open_server_unix_udp(const char *socket_path) {
+        1:  117:int open_server_unix_udp(const char *socket_path) {
         -:  118:    int sockfd;
         -:  119:    struct sockaddr_un addr;
         -:  120:
         -:  121:    // Create a Unix domain socket
-        2:  122:    sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-        2:  123:    if (sockfd == -1) {
+        1:  122:    sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
+        1:  123:    if (sockfd == -1) {
     #####:  124:        perror("socket");
     #####:  125:        exit(EXIT_FAILURE);
         -:  126:    }
         -:  127:
         -:  128:    // Ensure the socket file does not already exist
-        2:  129:    unlink(socket_path);
+        1:  129:    unlink(socket_path);
         -:  130:
         -:  131:    // Initialize address structure
-        2:  132:    memset(&addr, 0, sizeof(struct sockaddr_un));
-        2:  133:    addr.sun_family = AF_UNIX;
-        2:  134:    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+        1:  132:    memset(&addr, 0, sizeof(struct sockaddr_un));
+        1:  133:    addr.sun_family = AF_UNIX;
+        1:  134:    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
         -:  135:
         -:  136:    // Bind the socket to the address
-        2:  137:    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+        1:  137:    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
     #####:  138:        perror("bind");
     #####:  139:        close(sockfd);
     #####:  140:        exit(EXIT_FAILURE);
         -:  141:    }
         -:  142:
-        2:  143:    return sockfd;
+        1:  143:    return sockfd;
         -:  144:}
-    #####:  145:int open_client_UDP(char *destaddr, char *serverport) {
+        1:  145:int open_client_UDP(char *destaddr, char *serverport) {
         -:  146:    int sockfd;
         -:  147:    struct addrinfo hints, *servinfo, *p;
         -:  148:    int rv;
-    #####:  149:    memset(&hints, 0, sizeof hints);
-    #####:  150:    hints.ai_family = AF_INET;  // set to AF_INET to use IPv4
-    #####:  151:    hints.ai_socktype = SOCK_DGRAM;
+        1:  149:    memset(&hints, 0, sizeof hints);
+        1:  150:    hints.ai_family = AF_INET;  // set to AF_INET to use IPv4
+        1:  151:    hints.ai_socktype = SOCK_DGRAM;
         -:  152:
-    #####:  153:    if ((rv = getaddrinfo(destaddr, serverport, &hints, &servinfo)) != 0) {
+        1:  153:    if ((rv = getaddrinfo(destaddr, serverport, &hints, &servinfo)) != 0) {
     #####:  154:        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     #####:  155:        return 1;
         -:  156:    }
         -:  157:
-    #####:  158:    for (p = servinfo; p != NULL; p = p->ai_next) {
-    #####:  159:        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+       1*:  158:    for (p = servinfo; p != NULL; p = p->ai_next) {
+       1*:  159:        if ((sockfd = socket(p->ai_family, p->ai_socktype,
         -:  160:                             p->ai_protocol)) == -1) {
     #####:  161:            perror("talker: socket");
     #####:  162:            continue;
         -:  163:        }
         -:  164:
-    #####:  165:        break;
+        1:  165:        break;
         -:  166:    }
-    #####:  167:    connect(sockfd, p->ai_addr, p->ai_addrlen);
-    #####:  168:    return sockfd;
+        1:  167:    connect(sockfd, p->ai_addr, p->ai_addrlen);
+        1:  168:    return sockfd;
         -:  169:}
         -:  170:
         -:  171:// get sockaddr, IPv4 or IPv6:
@@ -181,7 +181,7 @@
     #####:  177:    return &(((struct sockaddr_in6 *)sa)->sin6_addr);
         -:  178:}
         -:  179:
-        6:  180:int open_server_UDP(char *myport) {
+        5:  180:int open_server_UDP(char *myport) {
         -:  181:    int sockfd;
         -:  182:    struct addrinfo hints, *servinfo, *p;
         -:  183:    int rv;
@@ -190,34 +190,34 @@
         -:  186:    //socklen_t addr_len;
         -:  187:    //char s[INET6_ADDRSTRLEN];
         -:  188:
-        6:  189:    memset(&hints, 0, sizeof hints);
-        6:  190:    hints.ai_family = AF_INET;  // set to AF_INET to use IPv4
-        6:  191:    hints.ai_socktype = SOCK_DGRAM;
-        6:  192:    hints.ai_flags = AI_PASSIVE;  // use my IP
+        5:  189:    memset(&hints, 0, sizeof hints);
+        5:  190:    hints.ai_family = AF_INET;  // set to AF_INET to use IPv4
+        5:  191:    hints.ai_socktype = SOCK_DGRAM;
+        5:  192:    hints.ai_flags = AI_PASSIVE;  // use my IP
         -:  193:
-        6:  194:    if ((rv = getaddrinfo(NULL, myport, &hints, &servinfo)) != 0) {
+        5:  194:    if ((rv = getaddrinfo(NULL, myport, &hints, &servinfo)) != 0) {
     #####:  195:        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     #####:  196:        return 1;
         -:  197:    }
         -:  198:
         -:  199:    // loop through all the results and bind to the first we can
-        7:  200:    for (p = servinfo; p != NULL; p = p->ai_next) {
-       6*:  201:        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+       5*:  200:    for (p = servinfo; p != NULL; p = p->ai_next) {
+       5*:  201:        if ((sockfd = socket(p->ai_family, p->ai_socktype,
         -:  202:                             p->ai_protocol)) == -1) {
     #####:  203:            perror("listener: socket");
     #####:  204:            continue;
         -:  205:        }
         -:  206:
-        6:  207:        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-        1:  208:            close(sockfd);
-        1:  209:            perror("listener: bind");
-        1:  210:            continue;
+       5*:  207:        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+    #####:  208:            close(sockfd);
+    #####:  209:            perror("listener: bind");
+    #####:  210:            continue;
         -:  211:        }
         5:  212:        break;
         -:  213:    }
-        6:  214:    if (p == NULL) {
-        1:  215:        fprintf(stderr, "listener: failed to bind socket\n");
-        1:  216:        return 2;
+        5:  214:    if (p == NULL) {
+    #####:  215:        fprintf(stderr, "listener: failed to bind socket\n");
+    #####:  216:        return 2;
         -:  217:    }
         5:  218:    freeaddrinfo(servinfo);
         5:  219:    return sockfd;
@@ -227,20 +227,20 @@
         -:  223:open socket - server side
         -:  224:return the client fd
         -:  225:*/
-        6:  226:int open_server_TCP(char *port) {
+        7:  226:int open_server_TCP(char *port) {
         -:  227:    struct sockaddr_in serveradder;
         -:  228:    struct sockaddr_in clientadder;
         -:  229:    socklen_t addrlen;
         -:  230:    // int buflen = 100;
         -:  231:    // char buf[buflen];
-        6:  232:    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        6:  233:    serveradder.sin_family = AF_INET;
-        6:  234:    serveradder.sin_port = htons(atoi(port));
-        6:  235:    serveradder.sin_addr.s_addr = INADDR_ANY;
+        7:  232:    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        7:  233:    serveradder.sin_family = AF_INET;
+        7:  234:    serveradder.sin_port = htons(atoi(port));
+        7:  235:    serveradder.sin_addr.s_addr = INADDR_ANY;
         -:  236:    // printf("socket(2) Sockfd = %d\n", sockfd);
-        6:  237:    if (bind(sockfd, (struct sockaddr *)&serveradder, sizeof(serveradder)) == -1) {
-    #####:  238:        perror("bind");
-    #####:  239:        exit(1);
+        7:  237:    if (bind(sockfd, (struct sockaddr *)&serveradder, sizeof(serveradder)) == -1) {
+        1:  238:        perror("bind");
+        1:  239:        exit(1);
         -:  240:    }
         6:  241:    if (listen(sockfd, 5) == -1) {
     #####:  242:        perror("listen");
@@ -259,65 +259,65 @@
         -:  255:open socket - client side
         -:  256:return the ----------------------------------
         -:  257:*/
-        3:  258:int open_client_TCP(char *server_ip, char *server_port) {
+        4:  258:int open_client_TCP(char *server_ip, char *server_port) {
         -:  259:    struct addrinfo hints, *res, *p;
         -:  260:    int status;
         -:  261:    int sockfd;
         -:  262:
         -:  263:    // set up the hints structure
-        3:  264:    memset(&hints, 0, sizeof hints);
-        3:  265:    hints.ai_socktype = SOCK_STREAM;
+        4:  264:    memset(&hints, 0, sizeof hints);
+        4:  265:    hints.ai_socktype = SOCK_STREAM;
         -:  266:
         -:  267:    // get address info
-        3:  268:    if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0) {
+        4:  268:    if ((status = getaddrinfo(server_ip, server_port, &hints, &res)) != 0) {
     #####:  269:        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
         -:  270:    }
         -:  271:
         -:  272:    // loop through the results and connect to the first we can
-       3*:  273:    for (p = res; p != NULL; p = p->ai_next) {
-       3*:  274:        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+       4*:  273:    for (p = res; p != NULL; p = p->ai_next) {
+       4*:  274:        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
     #####:  275:            perror("error creating socket");
     #####:  276:            continue;
         -:  277:        }
         -:  278:
-       3*:  279:        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+       4*:  279:        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
     #####:  280:            close(sockfd);
     #####:  281:            perror("error connecting to server");
     #####:  282:            continue;
         -:  283:        }
         -:  284:
-        3:  285:        break;  // if we get here, we must have connected successfully
+        4:  285:        break;  // if we get here, we must have connected successfully
         -:  286:    }
         -:  287:
-        3:  288:    if (p == NULL) {
+        4:  288:    if (p == NULL) {
     #####:  289:        perror("failed to connect\n");
         -:  290:    }
         -:  291:
-        3:  292:    freeaddrinfo(res);  // free the linked list
-        3:  293:    return sockfd;
+        4:  292:    freeaddrinfo(res);  // free the linked list
+        4:  293:    return sockfd;
         -:  294:}
         -:  295:
-       23:  296:int run_programming(char *input) {
+       22:  296:int run_programming(char *input) {
         -:  297:    // Ensure input is not NULL
-       23:  298:    if (input == NULL) {
+       22:  298:    if (input == NULL) {
     #####:  299:        perror("Input string is NULL\n");
     #####:  300:        return 1;
         -:  301:    }
         -:  302:
         -:  303:    // Array to hold the command and its arguments (assuming max 20 arguments)
         -:  304:    char *argv[20];
-       23:  305:    int argc = 0;
+       22:  305:    int argc = 0;
         -:  306:
         -:  307:    // Tokenize the input string
-       23:  308:    char *token = strtok(input, " ");
-       23:  309:    int i = 0;
-       69:  310:    while (token != NULL && argc < 19) {
-       46:  311:        printf("%d", i);
-       46:  312:        argv[argc++] = token;
-       46:  313:        token = strtok(NULL, " ");
-       46:  314:        i++;
+       22:  308:    char *token = strtok(input, " ");
+       22:  309:    int i = 0;
+       66:  310:    while (token != NULL && argc < 19) {
+       44:  311:        printf("%d", i);
+       44:  312:        argv[argc++] = token;
+       44:  313:        token = strtok(NULL, " ");
+       44:  314:        i++;
         -:  315:    }
-       23:  316:    argv[argc] = NULL;  // Null-terminate the array
+       22:  316:    argv[argc] = NULL;  // Null-terminate the array
         -:  317:
         -:  318:    // Debug: Print each token to see the result of strtok
         -:  319:    // for (int i = 0; i < argc; i++)
@@ -325,148 +325,148 @@
         -:  321:    //     printf("argv[%d]: %s\n", i, argv[i]);
         -:  322:    // }
         -:  323:    // Check if any command was provided
-       23:  324:    if (argc == 0) {
+       22:  324:    if (argc == 0) {
     #####:  325:        perror("Without arguments\n");
     #####:  326:        return 1;
         -:  327:    }
         -:  328:    // printf("before fork\n");
         -:  329:    //  Fork and execute the command
         -:  330:    int pid;
-       23:  331:    if ((pid = fork()) == -1) {
+       22:  331:    if ((pid = fork()) == -1) {
     #####:  332:        perror("fork failed");
     #####:  333:        return 1;
         -:  334:    }
-       58:  335:    if (pid == 0) {
+       47:  335:    if (pid == 0) {
         -:  336:        // the programinig run untill here
         -:  337:        //  Child process: execute the command
-       35:  338:        execvp(argv[0], argv);
-       35:  339:        perror("execvp failed");
+       25:  338:        execvp(argv[0], argv);
+       25:  339:        perror("execvp failed");
     #####:  340:        exit(EXIT_FAILURE);
         -:  341:    }
         -:  342:    // Parent process: wait for the child to complete
-       23:  343:    wait(NULL);
-       19:  344:    fflush(stdout);
-       19:  345:    printf("End of run_programming\n");
+       22:  343:    wait(NULL);
+       21:  344:    fflush(stdout);
+       21:  345:    printf("End of run_programming\n");
         -:  346:
-       19:  347:    return 0;
+       21:  347:    return 0;
         -:  348:}
         -:  349:
-       12:  350:int i_case(char *input) {
-       12:  351:    if (strncmp(input, "UDPS", 4) == 0) {
-        6:  352:        char *port = input + 4;  // port start after 4 chars
+       14:  350:int i_case(char *input) {
+       14:  351:    if (strncmp(input, "UDPS", 4) == 0) {
+        5:  352:        char *port = input + 4;  // port start after 4 chars
         -:  353:        // printf("port: %s\n", port);
-        6:  354:        int c_fd = open_server_UDP(port);
+        5:  354:        int c_fd = open_server_UDP(port);
         -:  355:        // printf("c_fd in i case: %d\n", c_fd);
-        6:  356:        input_fd = c_fd;
+        5:  356:        input_fd = c_fd;
         -:  357:    }
         -:  358:
         -:  359:    // printf("input out: %s\n", input);
-       12:  360:    if (strncmp(input, "TCPS", 4) == 0) {
-        1:  361:        char *port = input + 4;  // port start after 4 chars
+       14:  360:    if (strncmp(input, "TCPS", 4) == 0) {
+        4:  361:        char *port = input + 4;  // port start after 4 chars
         -:  362:        // printf("port: %s\n", port);
-        1:  363:        int c_fd = open_server_TCP(port);
+        4:  363:        int c_fd = open_server_TCP(port);
         -:  364:        // printf("c_fd in i case: %d\n", c_fd);
-        1:  365:        input_fd = c_fd;
+        3:  365:        input_fd = c_fd;
         -:  366:    }
-       12:  367:    if (strncmp(input, "TCPC", 4) == 0) {
-    #####:  368:        input = input + 4;  // port start after 4 chars
+       13:  367:    if (strncmp(input, "TCPC", 4) == 0) {
+        1:  368:        input = input + 4;  // port start after 4 chars
         -:  369:        char *localhost;
-    #####:  370:        if ((localhost = strtok(input, ",")) == NULL) {
+        1:  370:        if ((localhost = strtok(input, ",")) == NULL) {
     #####:  371:            perror("Didn't get localhost");
     #####:  372:            exit(1);
         -:  373:        }
         -:  374:        char *port_char;
-    #####:  375:        if ((port_char = strtok(NULL, ",")) == NULL) {
+        1:  375:        if ((port_char = strtok(NULL, ",")) == NULL) {
     #####:  376:            perror("Didn't get port");
     #####:  377:            exit(1);
         -:  378:        }
-    #####:  379:        int sockfd = open_client_TCP(localhost, port_char);
-    #####:  380:        input_fd = sockfd;
+        1:  379:        int sockfd = open_client_TCP(localhost, port_char);
+        1:  380:        input_fd = sockfd;
         -:  381:    }
-       12:  382:    if (strncmp(input, "UDSSD", 5) == 0) {
-        2:  383:        input = input + 5;  // check the input after 5 chars D or S
-        2:  384:        int sockfd = open_server_unix_udp(input);
-        2:  385:        input_fd = sockfd;
+       13:  382:    if (strncmp(input, "UDSSD", 5) == 0) {
+        1:  383:        input = input + 5;  // check the input after 5 chars D or S
+        1:  384:        int sockfd = open_server_unix_udp(input);
+        1:  385:        input_fd = sockfd;
         -:  386:    }
-       12:  387:    if (strncmp(input, "UDSSS", 5) == 0) {
-        2:  388:        input = input + 5;  // check the input after 5 chars D or S
-        2:  389:        int sockfd = open_server_unix_stream(input);
-        2:  390:        input_fd = sockfd;
+       13:  387:    if (strncmp(input, "UDSSS", 5) == 0) {
+        1:  388:        input = input + 5;  // check the input after 5 chars D or S
+        1:  389:        int sockfd = open_server_unix_stream(input);
+        1:  390:        input_fd = sockfd;
         -:  391:    }
-       12:  392:    if (strncmp(input, "UDSCS", 5) == 0) {
+       13:  392:    if (strncmp(input, "UDSCS", 5) == 0) {
         1:  393:        input = input + 5;  // check the input after 5 chars D or S
         1:  394:        int sockfd = open_client_unix_stream(input);
         1:  395:        input_fd = sockfd;
         -:  396:    }
-       12:  397:    return 0;
+       13:  397:    return 0;
         -:  398:}
         -:  399:
-       11:  400:int o_case(char *input) {
+       10:  400:int o_case(char *input) {
         -:  401:    // printf("input out: %s\n", input);
-       11:  402:    if (strncmp(input, "TCPS", 4) == 0) {
-    #####:  403:        char *port = input + 4;  // port start after 4 chars
+       10:  402:    if (strncmp(input, "TCPS", 4) == 0) {
+        1:  403:        char *port = input + 4;  // port start after 4 chars
         -:  404:        // printf("port o case: %s\n", port);
-    #####:  405:        int c_fd = open_server_TCP(port);
+        1:  405:        int c_fd = open_server_TCP(port);
         -:  406:        // printf("c_fd in o case: %d\n", c_fd);
-    #####:  407:        output_fd = c_fd;
+        1:  407:        output_fd = c_fd;
         -:  408:    }
-       11:  409:    if (strncmp(input, "TCPC", 4) == 0) {
-        2:  410:        input = input + 4;  // port start after 4 chars
+       10:  409:    if (strncmp(input, "TCPC", 4) == 0) {
+        3:  410:        input = input + 4;  // port start after 4 chars
         -:  411:        char *localhost;
-        2:  412:        if ((localhost = strtok(input, ",")) == NULL) {
+        3:  412:        if ((localhost = strtok(input, ",")) == NULL) {
     #####:  413:            perror("no localhost");
     #####:  414:            exit(1);
         -:  415:        }
         -:  416:        char *port_char;
-        2:  417:        if ((port_char = strtok(NULL, ",")) == NULL) {
-    #####:  418:            perror("no port");
-    #####:  419:            exit(1);
+        3:  417:        if ((port_char = strtok(NULL, ",")) == NULL) {
+        1:  418:            perror("no port");
+        1:  419:            exit(1);
         -:  420:        }
         2:  421:        int sockfd = open_client_TCP(localhost, port_char);
         2:  422:        output_fd = sockfd;
         -:  423:    }
-       11:  424:    if (strncmp(input, "UDPC", 4) == 0) {
-        5:  425:        input = input + 4;  // port start after 4 chars
+        9:  424:    if (strncmp(input, "UDPC", 4) == 0) {
+        2:  425:        input = input + 4;  // port start after 4 chars
         -:  426:        char *localhost;
-        5:  427:        if ((localhost = strtok(input, ",")) == NULL) {
+        2:  427:        if ((localhost = strtok(input, ",")) == NULL) {
     #####:  428:            perror("no localhost");
     #####:  429:            exit(1);
         -:  430:        }
         -:  431:        char *port_char;
-        5:  432:        if ((port_char = strtok(NULL, ",")) == NULL) {
-        5:  433:            perror("no port");
-        5:  434:            exit(1);
+        2:  432:        if ((port_char = strtok(NULL, ",")) == NULL) {
+        1:  433:            perror("no port");
+        1:  434:            exit(1);
         -:  435:        }
-    #####:  436:        int sockfd = open_client_UDP(localhost, port_char);
-    #####:  437:        output_fd = sockfd;
+        1:  436:        int sockfd = open_client_UDP(localhost, port_char);
+        1:  437:        output_fd = sockfd;
         -:  438:    }
-        6:  439:    if (strncmp(input, "UDSCD", 5) == 0) {
-        2:  440:        input = input + 5;  // check the input after 5 chars D or S
-        2:  441:        int sockfd = open_client_unix_datagram(input);
+        8:  439:    if (strncmp(input, "UDSCD", 5) == 0) {
+        1:  440:        input = input + 5;  // check the input after 5 chars D or S
+        1:  441:        int sockfd = open_client_unix_datagram(input);
         1:  442:        output_fd = sockfd;
         -:  443:    }
-        5:  444:    if (strncmp(input, "UDSSS", 5) == 0) {
+        8:  444:    if (strncmp(input, "UDSSS", 5) == 0) {
         1:  445:        input = input + 5;  // check the input after 5 chars D or S
         1:  446:        int sockfd = open_server_unix_stream(input);
         1:  447:        output_fd = sockfd;
         -:  448:    }
-        5:  449:    if (strncmp(input, "UDSCS", 5) == 0) {
+        8:  449:    if (strncmp(input, "UDSCS", 5) == 0) {
         1:  450:        input = input + 5;  // check the input after 5 chars D or S
         1:  451:        int sockfd = open_client_unix_stream(input);
         1:  452:        output_fd = sockfd;
         -:  453:    }
         -:  454:
-        5:  455:    return 0;
+        8:  455:    return 0;
         -:  456:}
         -:  457:// both- i and o
-        6:  458:int b_case(char *input) {
-        6:  459:    if (strncmp(input, "TCPS", 4) == 0) {
-        5:  460:        char *port = input + 4;  // port start after 4 chars
-        5:  461:        int c_fd = open_server_TCP(port);
-        5:  462:        input_fd = c_fd;
-        5:  463:        output_fd = c_fd;
+        5:  458:int b_case(char *input) {
+        5:  459:    if (strncmp(input, "TCPS", 4) == 0) {
+        2:  460:        char *port = input + 4;  // port start after 4 chars
+        2:  461:        int c_fd = open_server_TCP(port);
+        2:  462:        input_fd = c_fd;
+        2:  463:        output_fd = c_fd;
         -:  464:    }
-        6:  465:    if (strncmp(input, "TCPC", 4) == 0) {
+        5:  465:    if (strncmp(input, "TCPC", 4) == 0) {
         1:  466:        input = input + 4;  // port start after 4 chars
         -:  467:        char *localhost;
         1:  468:        if ((localhost = strtok(input, ",")) == NULL) {
@@ -483,28 +483,28 @@
         1:  479:        input_fd = sockfd;
         1:  480:        output_fd = sockfd;
         -:  481:    }
-        6:  482:    return 0;
+        5:  482:    return 0;
         -:  483:}
         -:  484:
-        4:  485:void handle_alarm(int sig) {
-        4:  486:    printf("Time out\n");
-        4:  487:    exit(1);
+        1:  485:void handle_alarm(int sig) {
+        1:  486:    printf("Time out\n");
+        1:  487:    exit(1);
         -:  488:}
         -:  489:
-        6:  490:int t_case(char *time_in_sec) {
-        6:  491:    printf("Time: %s\n", time_in_sec);
-        6:  492:    if (time_in_sec == NULL) {
+        4:  490:int t_case(char *time_in_sec) {
+        4:  491:    printf("Time: %s\n", time_in_sec);
+        4:  492:    if (time_in_sec == NULL) {
     #####:  493:        perror("Time is NULL\n");
     #####:  494:        exit(1);
         -:  495:    }
-        6:  496:    int time = atoi(time_in_sec);
-        6:  497:    if (time < 0) {
+        4:  496:    int time = atoi(time_in_sec);
+        4:  497:    if (time < 0) {
     #####:  498:        perror("Time should be positive\n");
     #####:  499:        exit(1);
         -:  500:    }
-        6:  501:    signal(SIGALRM, handle_alarm);
-        6:  502:    alarm(time);
-        6:  503:    return 0;
+        4:  501:    signal(SIGALRM, handle_alarm);
+        4:  502:    alarm(time);
+        4:  503:    return 0;
         -:  504:}
         -:  505:
         -:  506:
@@ -537,70 +537,71 @@
     #####:  533:            write(output_fd, temp, strlen(temp));  // Write the contents of temp to the output_fd (a socket or a file)
         -:  534:        }
         -:  535:    }
-    #####:  536:}
-        -:  537:
-       29:  538:int main(int argc, char *argv[]) {
-       29:  539:    if (argc < 2) {
-    #####:  540:        perror("Error\n");
-    #####:  541:        exit(1);
-        -:  542:    }
-        -:  543:    char *re_val_e;
-        -:  544:    char *re_val_b;
-        -:  545:    char *re_val_i;
-        -:  546:    char *re_val_o;
-        -:  547:    // optarg
-        -:  548:    int opt;
-       82:  549:    while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1) {
-        -:  550:        {
-       59:  551:            switch (opt) {
-       24:  552:                case 'e':
-       24:  553:                    re_val_e = optarg;  // optarg is the argument after -e
-       24:  554:                    break;
-        6:  555:                case 'b':
-        6:  556:                    re_val_b = optarg;
-        6:  557:                    b_case(optarg);  // optarg is the argument after -b
-        6:  558:                    break;
-       12:  559:                case 'i':
-       12:  560:                    re_val_i = optarg;
-       12:  561:                    i_case(optarg);  // optarg is the argument after -i
-       12:  562:                    break;
-       11:  563:                case 'o':
-       11:  564:                    re_val_o = optarg;
-       11:  565:                    o_case(optarg);  // optarg is the argument after -i
-        5:  566:                    break;
-        6:  567:                case 't':
-        6:  568:                   t_case(optarg);  // optarg is the argument after -i
-        6:  569:                    break;
-        -:  570:
-    #####:  571:                default:
-    #####:  572:                    fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
-    #####:  573:                    exit(EXIT_FAILURE);
-        -:  574:            }
-        -:  575:        }
-        -:  576:    }
-        -:  577:
-       23:  578:    if (re_val_b != NULL && (re_val_o != NULL || re_val_i != NULL)) {
-    #####:  579:        perror("Error: -b can't be used with -i or -o\n");
-    #####:  580:        exit(1);
-        -:  581:    }
-       23:  582:    if (re_val_e) {
-       23:  583:        if (input_fd != STDIN_FILENO) {
-       18:  584:            if (dup2(input_fd, STDIN_FILENO) == -1) {
-    #####:  585:                perror("dup2- e case");
-    #####:  586:                close(input_fd);
-        -:  587:            }
-        -:  588:        }
-       23:  589:        if (output_fd != STDOUT_FILENO) {
-       11:  590:            if (dup2(output_fd, STDOUT_FILENO) == -1) {
-    #####:  591:                perror("dup2- e case");
-    #####:  592:                close(output_fd);
-        -:  593:            }
-        -:  594:        }
-       23:  595:        run_programming(re_val_e);
-        -:  596:    } else {
-    #####:  597:        chat_case();
-        -:  598:    }
-       19:  599:    printf("end");
-       19:  600:    close(1);
-       19:  601:    return 0;
-        -:  602:}
+        -:  536:
+    #####:  537:}
+        -:  538:
+       29:  539:int main(int argc, char *argv[]) {
+       29:  540:    if (argc < 2) {
+        1:  541:        perror("Error\n");
+        1:  542:        exit(1);
+        -:  543:    }
+        -:  544:    char *re_val_e;
+        -:  545:    char *re_val_b;
+        -:  546:    char *re_val_i;
+        -:  547:    char *re_val_o;
+        -:  548:    // optarg
+        -:  549:    int opt;
+       84:  550:    while ((opt = getopt(argc, argv, "e:b:i:o:t:")) != -1) {
+        -:  551:        {
+       61:  552:            switch (opt) {
+       26:  553:                case 'e':
+       26:  554:                    re_val_e = optarg;  // optarg is the argument after -e
+       26:  555:                    break;
+        5:  556:                case 'b':
+        5:  557:                    re_val_b = optarg;
+        5:  558:                    b_case(optarg);  // optarg is the argument after -b
+        5:  559:                    break;
+       14:  560:                case 'i':
+       14:  561:                    re_val_i = optarg;
+       14:  562:                    i_case(optarg);  // optarg is the argument after -i
+       13:  563:                    break;
+       10:  564:                case 'o':
+       10:  565:                    re_val_o = optarg;
+       10:  566:                    o_case(optarg);  // optarg is the argument after -i
+        8:  567:                    break;
+        4:  568:                case 't':
+        4:  569:                   t_case(optarg);  // optarg is the argument after -i
+        4:  570:                    break;
+        -:  571:
+        2:  572:                default:
+        2:  573:                    fprintf(stderr, "You should write Usage: %s -e <value>\n", argv[0]);
+        2:  574:                    exit(EXIT_FAILURE);
+        -:  575:            }
+        -:  576:        }
+        -:  577:    }
+        -:  578:
+       23:  579:    if (re_val_b != NULL && (re_val_o != NULL || re_val_i != NULL)) {
+        1:  580:        perror("Error: -b can't be used with -i or -o\n");
+        1:  581:        exit(1);
+        -:  582:    }
+       22:  583:    if (re_val_e != NULL) {
+       22:  584:        if (input_fd != STDIN_FILENO) {
+       15:  585:            if (dup2(input_fd, STDIN_FILENO) == -1) {
+    #####:  586:                perror("dup2- e case");
+    #####:  587:                close(input_fd);
+        -:  588:            }
+        -:  589:        }
+       22:  590:        if (output_fd != STDOUT_FILENO) {
+       10:  591:            if (dup2(output_fd, STDOUT_FILENO) == -1) {
+    #####:  592:                perror("dup2- e case");
+    #####:  593:                close(output_fd);
+        -:  594:            }
+        -:  595:        }
+       22:  596:        run_programming(re_val_e);
+        -:  597:    } else {
+    #####:  598:        chat_case();
+        -:  599:    }
+       21:  600:    printf("end");
+       21:  601:    close(1);
+       21:  602:    return 0;
+        -:  603:}

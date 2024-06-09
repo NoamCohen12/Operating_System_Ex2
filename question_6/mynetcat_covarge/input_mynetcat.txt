@@ -1,12 +1,17 @@
 inputs tcp:
+#server:
 ./mynetcat -e "./ttt 123456789" -i TCPS4050
+#client:
 ./mynetcat  -o TCPClocalhost,4050 
 
+#server:
 ./mynetcat -e "./ttt 123456789" -o TCPS4050
+#client:
 ./mynetcat  -i TCPClocalhost,4050
 
-
+#server:
 ./mynetcat -e "./ttt 123456789" -b TCPS4150
+#client:
  nc localhost 4150
 
 # server
@@ -16,61 +21,106 @@ inputs tcp:
 
 
 
+server and client:
+ ./mynetcat -e "./ttt 123456789" -i TCPS4158 -o TCPClocalhost,4152
+ #server:
+ nc -l -p 4152
+ #client:
+ nc localhost 4158
+
+
+#client:
+./mynetcat -e "./ttt 123456789" -i TCPClocalhost,4152
+#server:
+ nc -l -p 4152
+
+
+server and client:
+  ./mynetcat -e "./ttt 123456789" -b TCPClocalhost,4150
+  #server:
+  nc -l -p 4150
+
 
 input chat:
-server
+#server
     ./mynetcat -i TCPS4050
-client
+#client
     nc localhost 4050
+#server
+    ./mynetcat -o TCPS4052
+#client
+    nc localhost 4052 
+
 
 
 input with time:
-
-    ./mynetcat -e "./ttt 123456789" -i UDPS4060 -t 30
+#server:
+./mynetcat -e "./ttt 123456789" -i UDPS4060 -t 30
+#client:
 ./mynetcat -o UDPClocalhost,4060 
 
 
 
 input udp:
+#server:
 ./mynetcat -e "./ttt 123456789" -i UDPS4060 -t 30
+#client:
 ./mynetcat -o UDPClocalhost,4060 
 
 
+
+#client:
+nc -u localhost 4060
+#server:
+./mynetcat -e "./ttt 123456789" -i UDPS4060
+
+
+#server:
+ nc -lu  4050
+#client:
+./mynetcat -e "./ttt 123456789" -o UDPClocalhost,4050
+
+
 input unix datagram:
-  client
+  #client
         ./mynetcat -e "./ttt 123456789" -o UDSCDquestion_6 //--------------- support only i
-    server
+  #server
         socat UNIX-RECVFROM:question_6,fork -
 
 
-   server
+ #server
         ./mynetcat -e "./ttt 123456789" -i UDSSDquestion_6  //--------------- support only o
-    client
+ #client
         socat - UNIX-SENDTO:question_6
 
 
 input unix stream:
- server
+ #server
         ./mynetcat -e "./ttt 123456789" -i UDSSSquestion_6  //-------------------- input from client
-    client 
+ #client 
         nc -U question_6 
 
-    server
+#server
         ./mynetcat -e "./ttt 123456789" -o UDSSSquestion_6 //--------------------- output to client
-    client 
+#client 
         nc -U question_6 
     
-    client
+#client
         ./mynetcat -e "./ttt 123456789" -i UDSCSquestion_6
-    server
+#server
         nc -lU question_6                                 // open server netcat
 
-    client
+#client
         ./mynetcat -e "./ttt 123456789" -o UDSCSquestion_6
-    server
+#server
         nc -lU question_6                                 // open server netcat
 
 
 
+input error:
 
+./mynetcat 
 
+./mynetcat -khfh -l45
+
+./mynetcat -e "./ttt 123456789" -b UDPS4060 -i UDPClocalhost,4060
